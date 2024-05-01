@@ -1,13 +1,12 @@
-"use strict";
-Object.defineProperty(exports, "__esModule", { value: true });
-exports.deleteLink = exports.editLink = exports.getSingleLink = exports.getAllLinks = exports.createLink = void 0;
-function createLink() { }
-exports.createLink = createLink;
-function getAllLinks() { }
-exports.getAllLinks = getAllLinks;
-function getSingleLink() { }
-exports.getSingleLink = getSingleLink;
-function editLink() { }
-exports.editLink = editLink;
-function deleteLink() { }
-exports.deleteLink = deleteLink;
+export function createLink(req, res) {
+    console.log("coming request");
+    console.log("ma body", req.body);
+    res.json({ ok: true });
+}
+export function getAllLinks(req, res) {
+    console.log("hola que tal soy all links");
+    res.send("looks like this works");
+}
+export function getSingleLink() { }
+export function editLink() { }
+export function deleteLink() { }

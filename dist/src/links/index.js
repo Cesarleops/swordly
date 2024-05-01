@@ -1,7 +1,4 @@
-"use strict";
-Object.defineProperty(exports, "__esModule", { value: true });
-exports.Link = void 0;
-class Link {
+export class Link {
     getLink(id, res) {
         console.log("heyy");
         res.redirect("https://elbundedistribuidora.com");
@@ -16,4 +13,3 @@ class Link {
     deleteLink(id) { }
     editLink(id) { }
 }
-exports.Link = Link;

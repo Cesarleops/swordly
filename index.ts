@@ -1,9 +1,10 @@
 import express from "express";
-import { router } from "./src/router";
+import { router } from "./src/router.js";
 
-const app = express();
-const PORT = 3000;
+export const app = express();
+const PORT = 3031;
 
+app.use(express.json());
 app.use("/api", router);
 
 app.listen(PORT, () => {

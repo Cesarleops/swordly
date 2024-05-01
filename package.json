@@ -3,20 +3,29 @@
   "version": "1.0.0",
   "description": "",
   "main": "index.js",
+  "type": "module",
   "scripts": {
     "build": "tsc",
     "dev": "tsc -w",
+    "start": "node --watch --env-file .env dist/index.js",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "keywords": [],
   "author": "",
   "license": "ISC",
   "dependencies": {
+    "@auth/express": "^0.5.4",
+    "@lucia-auth/adapter-postgresql": "^3.1.2",
     "@types/node": "^20.12.7",
-    "express": "^4.19.2"
+    "arctic": "^1.8.0",
+    "express": "^4.19.2",
+    "lucia": "^3.2.0",
+    "oslo": "^1.2.0",
+    "pg": "^8.11.5"
   },
   "devDependencies": {
     "@types/express": "^4.17.21",
+    "@types/pg": "^8.11.5",
     "prettier": "^3.2.5",
     "typescript": "^5.4.5"
   }

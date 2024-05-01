@@ -1,15 +1,31 @@
-"use strict";
-Object.defineProperty(exports, "__esModule", { value: true });
-exports.router = void 0;
-const express_1 = require("express");
-const controllers_1 = require("./links/controllers");
-const controllers_2 = require("./users/controllers");
-exports.router = (0, express_1.Router)();
+import { Router } from "express";
+import { createLink, deleteLink, editLink, getAllLinks, getSingleLink, } from "./links/controllers.js";
+import { createUser } from "./users/controllers.js";
+import { generateCodeVerifier, generateState, Google } from "arctic";
+import { GitHub } from "arctic";
+export const github = new GitHub(process.env.GITHUB_CLIENT, process.env.GITHUB_SECRET);
+export const google = new Google(process.env.GOOGLE_CLIENT, process.env.GOOGLE_SECRET, "http://localhost:3031/api/login/google/callback");
+export const router = Router();
 //Links
-exports.router.get("/links/:id", controllers_1.getSingleLink);
-exports.router.get("/links", controllers_1.getAllLinks);
-exports.router.post("/links", controllers_1.createLink);
-exports.router.put("/links", controllers_1.editLink);
-exports.router.delete("/links", controllers_1.deleteLink);
+router.get("/links/:id", getSingleLink);
+router.get("/links", getAllLinks);
+router.post("/links", createLink);
+router.put("/links", editLink);
+router.delete("/links", deleteLink);
 //Users
-exports.router.post("/user", controllers_2.createUser);
+router.post("/user", createUser);
+//Auth
+router.get("/login/google", async (req, res) => {
+    const state = generateState();
+    const codeVerifier = generateCodeVerifier();
+    const url = await google.createAuthorizationURL(state, codeVerifier);
+    res.status(302).setHeader("Location", url.toString()).end();
+});
+router.get("/login/github", async (req, res) => {
+    const state = generateState();
+    const url = await github.createAuthorizationURL(state);
+    res.status(302).setHeader("Location", url.toString()).end();
+});
+router.get("/login/github/callback", async (request) => {
+    //HANDLE USER SESSION
+});
