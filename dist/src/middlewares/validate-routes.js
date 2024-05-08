@@ -3,6 +3,7 @@ import { lucia } from "../auth/index.js";
 export const validateRoutes = async (req, res, next) => {
     const cookies = parseCookies(req.headers.cookie ?? "");
     const sessionId = cookies.get("auth_session");
+    console.log("ss", sessionId);
     if (sessionId) {
         try {
             const { user, session } = await lucia.validateSession(sessionId);

@@ -8,6 +8,7 @@ export const validateRoutes = async (
 ) => {
   const cookies = parseCookies(req.headers.cookie ?? "");
   const sessionId = cookies.get("auth_session");
+  console.log("ss", sessionId);
   if (sessionId) {
     try {
       const { user, session } = await lucia.validateSession(sessionId);

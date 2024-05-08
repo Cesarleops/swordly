@@ -5,13 +5,20 @@ import {
   deleteLinkFromDb,
   getSingleLink,
   getUserLinks,
+  sortByCreation,
+  sortByNameAsc,
+  sortByNameDesc,
   updateLink,
 } from "./queries.js";
 import { pool } from "../db.js";
 
-export async function createLink(req: Request, res: Response) {
-  // console.log("create", req.body);
-  // console.log(req.user);
+export interface CustomRequest extends Request {
+  user: {
+    id: string;
+    username: string;
+  };
+}
+export async function createLink(req: CustomRequest, res: Response) {
   const result = await createNewLink({
     original: req.body.original,
     short: req.body.short,
@@ -22,9 +29,7 @@ export async function createLink(req: Request, res: Response) {
   res.end();
 }
 
-export async function getAllLinks(req: Request, res: Response) {
-  // console.log("get all", req.user);
-
+export async function getAllLinks(req: CustomRequest, res: Response) {
   const links = await getUserLinks(req.user.id);
   res.json({ links: links.links?.rows });
 }
@@ -44,7 +49,6 @@ export async function getLink(req: Request, res: Response) {
 }
 
 export async function editLink(req: Request, res: Response) {
-  // const formJson = Object.fromEntries(req.body.entries());
   console.log("e", req.body);
 
   const editedLink = await updateLink({ id: req.body.id, newData: req.body });
@@ -58,4 +62,27 @@ export async function deleteLink(req: Request, res: Response) {
   console.log("dl", deletedLink);
   res.end();
 }
-export { getSingleLink };
+
+export async function sortLinks(req: Request, res: Response) {
+  const { sort } = req.query;
+  console.log("query", sort);
+  res.end();
+  switch (sort) {
+    case "name_asc":
+      const linksByNameAsc = await sortByNameAsc();
+      res.json({ links: linksByNameAsc });
+      return;
+
+    case "name_desc":
+      const linksByNameDesc = await sortByNameDesc();
+      res.json({ links: linksByNameDesc });
+      return;
+
+    case "creation":
+      const linksByCreation = await sortByCreation();
+      res.json({ links: linksByCreation });
+      return;
+    default:
+      return [];
+  }
+}

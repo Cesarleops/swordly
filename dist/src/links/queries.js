@@ -68,15 +68,53 @@ export const deleteLinkFromDb = async (id) => {
 export const updateLink = async ({ id, newData }) => {
     console.log("id", id);
     console.log("data", newData);
-    const updatedLink = await pool.query(`
-    UPDATE links
-    SET 
-        original = CASE WHEN $1 <> '' THEN $1 ELSE original END,
-        short = CASE WHEN $2 <> '' THEN $2 ELSE short END,
-        description = CASE WHEN $3 <> '' THEN $3 ELSE description END
-    WHERE id = $4
-    RETURNING *;
-    
-    `, [newData.original, newData.short, newData.description, id]);
-    return updatedLink;
+    try {
+        const updatedLink = await pool.query(`
+      UPDATE links
+      SET 
+          original = CASE WHEN $1 <> '' THEN $1 ELSE original END,
+          short = CASE WHEN $2 <> '' THEN $2 ELSE short END,
+          description = CASE WHEN $3 <> '' THEN $3 ELSE description END
+      WHERE id = $4
+      RETURNING *;
+      
+      `, [newData.original, newData.short, newData.description, id]);
+        return updatedLink;
+    }
+    catch (error) {
+        console.log(error);
+    }
+};
+export const sortByCreation = async () => {
+    try {
+        const links = await pool.query(`
+    SELECT * FROM links ORDER BY created_at DESC
+    `);
+        return links;
+    }
+    catch (error) {
+        console.log(error);
+    }
+};
+export const sortByNameAsc = async () => {
+    try {
+        const links = await pool.query(`
+    SELECT * FROM links ORDER BY name ASC
+    `);
+        return links;
+    }
+    catch (error) {
+        console.log(error);
+    }
+};
+export const sortByNameDesc = async () => {
+    try {
+        const links = await pool.query(`
+  SELECT * FROM links ORDER BY name DESC
+  `);
+        return links;
+    }
+    catch (error) {
+        console.log(error);
+    }
 };
