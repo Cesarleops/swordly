@@ -12,11 +12,14 @@ export const dbInit = async () => {
       original TEXT,
       short VARCHAR(10) UNIQUE,
       description TEXT,
-      created_at TIMESTAMP,
-      clicks INTEGER,
+      created_at TIMESTAMP DEFAULT NOW(),
+      clicks INTEGER DEFAULT 0,
       created_by TEXT REFERENCES users(id)
     );
   `);
+        await pool.query(`
+    CREATE INDEX slug ON links(short)
+   `);
         console.log("done");
     }
     catch (error) {

@@ -7,11 +7,11 @@ import {
   getUserLinks,
   updateLink,
 } from "./queries.js";
-import { parseCookies } from "oslo/cookie";
+import { pool } from "../db.js";
 
 export async function createLink(req: Request, res: Response) {
-  console.log("create", req.body);
-  console.log(req.user);
+  // console.log("create", req.body);
+  // console.log(req.user);
   const result = await createNewLink({
     original: req.body.original,
     short: req.body.short,
@@ -19,27 +19,35 @@ export async function createLink(req: Request, res: Response) {
     created_by: req.user.id,
   });
   console.log(result);
+  res.end();
 }
 
 export async function getAllLinks(req: Request, res: Response) {
-  console.log("get all", req.user);
+  // console.log("get all", req.user);
 
   const links = await getUserLinks(req.user.id);
-  console.log("all", links);
   res.json({ links: links.links?.rows });
 }
 
 export async function getLink(req: Request, res: Response) {
-  console.log("get link", req.body);
-  const link = await getSingleLink(req.body.short);
-  console.log("og", link);
+  console.log("get link", req.params);
+  const link = await getSingleLink(req.params.id);
+  await pool.query(
+    `
+    UPDATE links SET clicks = clicks + 1 WHERE id = $1
+  `,
+    [link?.rows[0].id],
+  );
+  console.log(link?.rows[0]);
+  res.redirect(link?.rows[0].original);
   res.end();
-  // res.redirect(link);
 }
 
 export async function editLink(req: Request, res: Response) {
-  console.log("edit link", req.body);
-  const editedLink = await updateLink(req.body);
+  // const formJson = Object.fromEntries(req.body.entries());
+  console.log("e", req.body);
+
+  const editedLink = await updateLink({ id: req.body.id, newData: req.body });
   console.log("el", editedLink);
   res.end();
 }

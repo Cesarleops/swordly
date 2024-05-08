@@ -2,8 +2,8 @@ import { pool } from "../db.js";
 export const getSingleLink = async (short) => {
     try {
         const link = await pool.query(`
-            SELECT original FROM links WHERE short = $1
-        `);
+            SELECT id, original FROM links WHERE short = $1 
+        `, [short]);
         return link;
     }
     catch (error) {
@@ -11,6 +11,7 @@ export const getSingleLink = async (short) => {
     }
 };
 export const createNewLink = async ({ original, short, description, created_by, }) => {
+    console.log("original", original);
     try {
         await pool.query(`
                     INSERT INTO links(original,short,description,created_by) VALUES (
@@ -32,7 +33,7 @@ export const createNewLink = async ({ original, short, description, created_by, 
     }
 };
 export const getUserLinks = async (id) => {
-    console.log("aca", id);
+    // console.log("aca", id);
     try {
         const allLinks = await pool.query(`
                 SELECT * FROM links WHERE created_by = $1
@@ -65,7 +66,17 @@ export const deleteLinkFromDb = async (id) => {
     }
 };
 export const updateLink = async ({ id, newData }) => {
+    console.log("id", id);
+    console.log("data", newData);
     const updatedLink = await pool.query(`
-        UPDATE links SET original= $1, short = $2, description = $3 WHERE id = $4 RETURNING *`, [newData.long, newData.short, newData.description, id]);
+    UPDATE links
+    SET 
+        original = CASE WHEN $1 <> '' THEN $1 ELSE original END,
+        short = CASE WHEN $2 <> '' THEN $2 ELSE short END,
+        description = CASE WHEN $3 <> '' THEN $3 ELSE description END
+    WHERE id = $4
+    RETURNING *;
+    
+    `, [newData.original, newData.short, newData.description, id]);
     return updatedLink;
 };

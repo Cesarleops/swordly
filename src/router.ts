@@ -1,12 +1,5 @@
 import { Router, Request, Response } from "express";
-import {
-  createLink,
-  deleteLink,
-  editLink,
-  getAllLinks,
-  getSingleLink,
-} from "./links/controllers.js";
-import { createUser } from "./users/controllers.js";
+
 import { parseCookies } from "oslo/cookie";
 import { generateCodeVerifier, generateState } from "arctic";
 import { google, github } from "./auth/oauth.js";
@@ -15,36 +8,9 @@ import { pool } from "./db.js";
 import { generateIdFromEntropySize } from "lucia";
 import { validateRoutes } from "./middlewares/validate-routes.js";
 
-export const router = Router();
+export const authRouter = Router();
 
-//Links
-
-router.get("/links/:id", getSingleLink);
-router.get("/links", validateRoutes, getAllLinks);
-router.post("/links", validateRoutes, createLink);
-router.put("/links", editLink);
-router.delete("/links", deleteLink);
-
-//Users
-
-router.post("/user", createUser);
-router.get("/user", async (req, res) => {
-  console.log("hey", req.headers.cookie);
-  const sessionId = parseCookies(req.headers.cookie ?? "").get("auth_session");
-  console.log("fh", sessionId);
-  if (sessionId) {
-    const { session, user } = await lucia.validateSession(sessionId);
-    console.log(user);
-    console.log(session);
-    if (user) {
-      res.json(user);
-    }
-  }
-});
-
-//Auth
-
-router.get("/login/google", async (req, res) => {
+authRouter.get("/login/google", async (req, res) => {
   const state = generateState();
   const codeVerifier = generateCodeVerifier();
   const url = await google.createAuthorizationURL(state, codeVerifier, {
@@ -68,7 +34,7 @@ router.get("/login/google", async (req, res) => {
     .end();
 });
 
-router.get("/login/google/callback", async (req, res) => {
+authRouter.get("/login/google/callback", async (req, res) => {
   try {
     const cookies = parseCookies(req.headers.cookie ?? "");
     const code = req.query.code;
@@ -94,8 +60,8 @@ router.get("/login/google/callback", async (req, res) => {
   }
 });
 
-router.get("/login/github", async (req, res) => {
-  console.log("LUCIA", lucia);
+authRouter.get("/login/github", async (req, res) => {
+  // console.log("LUCIA", lucia);
 
   const state = generateState();
   const url = await github.createAuthorizationURL(state);
@@ -110,37 +76,58 @@ router.get("/login/github", async (req, res) => {
     .setHeader("Location", url.toString())
     .end();
 });
+authRouter.get(
+  "/login/github/callback",
+  async (req: Request, res: Response) => {
+    const cookies = parseCookies(req.headers.cookie ?? "");
 
-router.get("/login/github/callback", async (req: Request, res: Response) => {
-  const cookies = parseCookies(req.headers.cookie ?? "");
+    const cookieState = cookies.get("github_oauth_state");
+    const state = req.query.state;
+    const code = req.query.code;
 
-  const cookieState = cookies.get("github_oauth_state");
-  const state = req.query.state;
-  const code = req.query.code;
+    if (!state || !cookieState || !code || cookieState !== state) {
+      res.status(404).send("Something went Wrong");
+    }
+    try {
+      const tokens = await github.validateAuthorizationCode(code as string);
 
-  if (!state || !cookieState || !code || cookieState !== state) {
-    res.status(404).send("Something went Wrong");
-  }
-  try {
-    const tokens = await github.validateAuthorizationCode(code as string);
+      const githubUserResponse = await fetch("https://api.github.com/user", {
+        headers: {
+          Authorization: `Bearer ${tokens.accessToken}`,
+        },
+      });
+      const githubUserResult: GitHubUserResult =
+        await githubUserResponse.json();
 
-    const githubUserResponse = await fetch("https://api.github.com/user", {
-      headers: {
-        Authorization: `Bearer ${tokens.accessToken}`,
-      },
-    });
-    const githubUserResult: GitHubUserResult = await githubUserResponse.json();
+      const existingUser = await pool.query(
+        "SELECT * FROM users WHERE github_id = $1",
+        [githubUserResult.id],
+      );
 
-    const existingUser = await pool.query(
-      "SELECT * FROM users WHERE github_id = $1",
-      [githubUserResult.id],
-    );
+      if (existingUser.rows.length > 0) {
+        console.log(existingUser.rows[0]);
+        const session = await lucia.createSession(existingUser.rows[0].id, {});
+        const sessionCookie = lucia.createSessionCookie(session.id);
+        return res
+          .status(302)
+          .cookie(
+            sessionCookie.name,
+            sessionCookie.value,
+            sessionCookie.attributes,
+          )
+          .setHeader("Location", "http://localhost:3000/dashboard")
+          .end();
+      }
 
-    if (existingUser.rows.length > 0) {
-      console.log(existingUser.rows[0]);
-      const session = await lucia.createSession(existingUser.rows[0].id, {});
+      const userId = generateIdFromEntropySize(10);
+      await pool.query(
+        "INSERT INTO users(id,username,github_id) VALUES($1, $2, $3) RETURNING *",
+        [userId, githubUserResult.login, githubUserResult.id],
+      );
+      const session = await lucia.createSession(userId, {});
       const sessionCookie = lucia.createSessionCookie(session.id);
-      return res
+
+      res
         .status(302)
         .cookie(
           sessionCookie.name,
@@ -149,25 +136,11 @@ router.get("/login/github/callback", async (req: Request, res: Response) => {
         )
         .setHeader("Location", "http://localhost:3000/dashboard")
         .end();
-    }
+    } catch (error) {}
+  },
+);
 
-    const userId = generateIdFromEntropySize(10);
-    await pool.query(
-      "INSERT INTO users(id,username,github_id) VALUES($1, $2, $3) RETURNING *",
-      [userId, githubUserResult.login, githubUserResult.id],
-    );
-    const session = await lucia.createSession(userId, {});
-    const sessionCookie = lucia.createSessionCookie(session.id);
-
-    res
-      .status(302)
-      .cookie(sessionCookie.name, sessionCookie.value, sessionCookie.attributes)
-      .setHeader("Location", "http://localhost:3000/dashboard")
-      .end();
-  } catch (error) {}
-});
-
-router.get("/logout", async (req, res) => {
+authRouter.get("/logout", async (req, res) => {
   const cookies = parseCookies(req.headers.cookie ?? "");
   const sessionId = cookies.get("auth_session");
   if (sessionId) {

@@ -1,37 +1,12 @@
 import { Router } from "express";
-import { createLink, deleteLink, editLink, getAllLinks, getSingleLink, } from "./links/controllers.js";
-import { createUser } from "./users/controllers.js";
 import { parseCookies } from "oslo/cookie";
 import { generateCodeVerifier, generateState } from "arctic";
 import { google, github } from "./auth/oauth.js";
 import { lucia } from "./auth/index.js";
 import { pool } from "./db.js";
 import { generateIdFromEntropySize } from "lucia";
-import { validateRoutes } from "./middlewares/validate-routes.js";
-export const router = Router();
-//Links
-router.get("/links/:id", getSingleLink);
-router.get("/links", validateRoutes, getAllLinks);
-router.post("/links", validateRoutes, createLink);
-router.put("/links", editLink);
-router.delete("/links", deleteLink);
-//Users
-router.post("/user", createUser);
-router.get("/user", async (req, res) => {
-    console.log("hey", req.headers.cookie);
-    const sessionId = parseCookies(req.headers.cookie ?? "").get("auth_session");
-    console.log("fh", sessionId);
-    if (sessionId) {
-        const { session, user } = await lucia.validateSession(sessionId);
-        console.log(user);
-        console.log(session);
-        if (user) {
-            res.json(user);
-        }
-    }
-});
-//Auth
-router.get("/login/google", async (req, res) => {
+export const authRouter = Router();
+authRouter.get("/login/google", async (req, res) => {
     const state = generateState();
     const codeVerifier = generateCodeVerifier();
     const url = await google.createAuthorizationURL(state, codeVerifier, {
@@ -54,7 +29,7 @@ router.get("/login/google", async (req, res) => {
         .setHeader("Location", url.toString())
         .end();
 });
-router.get("/login/google/callback", async (req, res) => {
+authRouter.get("/login/google/callback", async (req, res) => {
     try {
         const cookies = parseCookies(req.headers.cookie ?? "");
         const code = req.query.code;
@@ -72,8 +47,8 @@ router.get("/login/google/callback", async (req, res) => {
         res.redirect("http://localhost:3000/login");
     }
 });
-router.get("/login/github", async (req, res) => {
-    console.log("LUCIA", lucia);
+authRouter.get("/login/github", async (req, res) => {
+    // console.log("LUCIA", lucia);
     const state = generateState();
     const url = await github.createAuthorizationURL(state);
     res
@@ -87,7 +62,7 @@ router.get("/login/github", async (req, res) => {
         .setHeader("Location", url.toString())
         .end();
 });
-router.get("/login/github/callback", async (req, res) => {
+authRouter.get("/login/github/callback", async (req, res) => {
     const cookies = parseCookies(req.headers.cookie ?? "");
     const cookieState = cookies.get("github_oauth_state");
     const state = req.query.state;
@@ -126,7 +101,7 @@ router.get("/login/github/callback", async (req, res) => {
     }
     catch (error) { }
 });
-router.get("/logout", async (req, res) => {
+authRouter.get("/logout", async (req, res) => {
     const cookies = parseCookies(req.headers.cookie ?? "");
     const sessionId = cookies.get("auth_session");
     if (sessionId) {
