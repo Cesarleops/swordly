@@ -97,7 +97,7 @@ authRouter.get(
         },
       });
       const githubUserResult: GitHubUserResult =
-        await githubUserResponse.json();
+        (await githubUserResponse.json()) as GitHubUserResult;
 
       const existingUser = await pool.query(
         "SELECT * FROM users WHERE github_id = $1",
@@ -122,7 +122,7 @@ authRouter.get(
       const userId = generateIdFromEntropySize(10);
       await pool.query(
         "INSERT INTO users(id,username,github_id) VALUES($1, $2, $3) RETURNING *",
-        [userId, githubUserResult.login, githubUserResult.id],
+        [userId, githubUserResult.username, githubUserResult.id],
       );
       const session = await lucia.createSession(userId, {});
       const sessionCookie = lucia.createSessionCookie(session.id);
@@ -154,5 +154,5 @@ authRouter.get("/logout", async (req, res) => {
 
 interface GitHubUserResult {
   id: number;
-  login: string; // username
+  username: string;
 }

@@ -1,6 +1,7 @@
 import { Response, Request, NextFunction } from "express";
 import { parseCookies } from "oslo/cookie";
 import { lucia } from "../auth/index.js";
+import { CustomRequest } from "../links/controllers.js";
 export const validateRoutes = async (
   req: Request,
   res: Response,
@@ -13,7 +14,7 @@ export const validateRoutes = async (
     try {
       const { user, session } = await lucia.validateSession(sessionId);
       if (session && user) {
-        req.user = user;
+        (req as CustomRequest).user = user;
         console.log("llegue");
         next();
       } else {

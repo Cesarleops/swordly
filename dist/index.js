@@ -4,6 +4,7 @@ import { authRouter } from "./src/router.js";
 import { dbInit, pool } from "./src/db.js";
 import usersRouter from "./src/users/routes.js";
 import linksRouter from "./src/links/routes.js";
+import { groupsRouter } from "./src/groups/routes.js";
 export const app = express();
 const PORT = 3031;
 const corsOptions = {
@@ -15,6 +16,7 @@ app.use(express.json());
 app.use("/api", authRouter);
 app.use("/api", usersRouter);
 app.use("/api", linksRouter);
+app.use("/api", groupsRouter);
 const client = await pool.connect();
 app.listen(PORT, async () => {
     await dbInit();

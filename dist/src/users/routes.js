@@ -10,10 +10,12 @@ usersRouter.get("/user", async (req, res) => {
     console.log("fh", sessionId);
     if (sessionId) {
         const { session, user } = await lucia.validateSession(sessionId);
-        console.log(user);
-        console.log(session);
+        console.log("u", user);
         if (user) {
-            res.json(user);
+            res.json({
+                username: user.username,
+                links_amount: user.links_amount,
+            });
         }
     }
 });

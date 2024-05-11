@@ -17,6 +17,7 @@ export const lucia = new Lucia(adapter, {
     return {
       githubId: attributes.github_id,
       username: attributes.username,
+      links_amount: attributes.links_amount,
     };
   },
 });
@@ -27,6 +28,7 @@ declare module "lucia" {
     DatabaseUserAttributes: {
       github_id: number;
       username: string;
+      links_amount: number;
     };
   }
 }

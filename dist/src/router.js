@@ -77,7 +77,7 @@ authRouter.get("/login/github/callback", async (req, res) => {
                 Authorization: `Bearer ${tokens.accessToken}`,
             },
         });
-        const githubUserResult = await githubUserResponse.json();
+        const githubUserResult = (await githubUserResponse.json());
         const existingUser = await pool.query("SELECT * FROM users WHERE github_id = $1", [githubUserResult.id]);
         if (existingUser.rows.length > 0) {
             console.log(existingUser.rows[0]);
@@ -90,7 +90,7 @@ authRouter.get("/login/github/callback", async (req, res) => {
                 .end();
         }
         const userId = generateIdFromEntropySize(10);
-        await pool.query("INSERT INTO users(id,username,github_id) VALUES($1, $2, $3) RETURNING *", [userId, githubUserResult.login, githubUserResult.id]);
+        await pool.query("INSERT INTO users(id,username,github_id) VALUES($1, $2, $3) RETURNING *", [userId, githubUserResult.username, githubUserResult.id]);
         const session = await lucia.createSession(userId, {});
         const sessionCookie = lucia.createSessionCookie(session.id);
         res
