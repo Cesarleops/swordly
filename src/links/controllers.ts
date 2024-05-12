@@ -17,10 +17,18 @@ export interface CustomRequest extends Request {
   user: {
     id: string;
     username: string;
+    links_amount: number;
   };
 }
 export async function createLink(req: Request, res: Response) {
   try {
+    if ((req as CustomRequest).user.links_amount === 20) {
+      res.json({
+        ok: "false",
+        message: "You already reached your limit links amount.",
+      });
+      return;
+    }
     const result = await createNewLink({
       original: req.body.original,
       short: req.body.short,
@@ -28,7 +36,9 @@ export async function createLink(req: Request, res: Response) {
       created_by: (req as CustomRequest).user.id,
     });
     console.log(result);
-    res.end();
+    res.json({
+      ok: true,
+    });
   } catch (error) {
     console.log(error);
   }

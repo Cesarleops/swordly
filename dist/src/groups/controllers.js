@@ -1,7 +1,7 @@
 import { createGroupDB, getGroupById, getGroups } from "./queries.js";
 export async function createGroup(req, res) {
     const { name, description, links } = req.body;
-    console.log(name, description, links);
+    console.log("links to insert", links);
     try {
         await createGroupDB(name, req.user.id, description, links);
         res.end();
@@ -22,9 +22,7 @@ export async function getUserGroups(req, res) {
 }
 export async function getSingleGroup(req, res) {
     try {
-        console.log(req.params);
         const group = await getGroupById(req.params.id);
-        console.log("completo", group);
         res.json(group);
     }
     catch (error) {

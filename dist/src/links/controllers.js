@@ -2,6 +2,13 @@ import { createNewLink, deleteLinkFromDb, getSingleLink, getUserLinks, sortByCre
 import { pool } from "../db.js";
 export async function createLink(req, res) {
     try {
+        if (req.user.links_amount === 20) {
+            res.json({
+                ok: "false",
+                message: "You already reached your limit links amount.",
+            });
+            return;
+        }
         const result = await createNewLink({
             original: req.body.original,
             short: req.body.short,
@@ -9,7 +16,9 @@ export async function createLink(req, res) {
             created_by: req.user.id,
         });
         console.log(result);
-        res.end();
+        res.json({
+            ok: true,
+        });
     }
     catch (error) {
         console.log(error);
