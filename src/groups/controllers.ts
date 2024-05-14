@@ -1,5 +1,11 @@
 import { Request, Response } from "express";
-import { createGroupDB, getGroupById, getGroups } from "./queries.js";
+import {
+  createGroupDB,
+  deleteGroup,
+  getGroupById,
+  getGroups,
+  updateGroup,
+} from "./queries.js";
 import { CustomRequest } from "../links/controllers.js";
 
 export async function createGroup(req: Request, res: Response) {
@@ -33,6 +39,27 @@ export async function getSingleGroup(req: Request, res: Response) {
   try {
     const group = await getGroupById(req.params.id);
     res.json(group);
+  } catch (error) {
+    console.log(error);
+  }
+}
+
+export async function updateGroupHandler(req: Request, res: Response) {
+  try {
+    console.log("body del put", req.body);
+    const { name, description, id } = req.body;
+    const group = await updateGroup(id, name, description);
+    res.json(group);
+  } catch (error) {
+    console.log(error);
+  }
+}
+
+export async function deleteGroupHandler(req: Request, res: Response) {
+  console.log("body del delete", req.body);
+  try {
+    const deletedGroup = await deleteGroup(req.body.id);
+    res.json(deletedGroup);
   } catch (error) {
     console.log(error);
   }
