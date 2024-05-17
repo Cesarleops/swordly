@@ -1,8 +1,14 @@
-import { createGroupDB, deleteGroup, getGroupById, getGroups, updateGroup, } from "./queries.js";
+import { addLinksToGroup, createGroupDB, deleteGroup, getGroupById, getGroupByName, getGroups, updateGroup, } from "./queries.js";
 export async function createGroup(req, res) {
     const { name, description, links } = req.body;
     console.log("links to insert", links);
     try {
+        const checkIfNameExists = await getGroupByName(name);
+        if (checkIfNameExists) {
+            res.json({
+                message: "You already have a group with this name. Please try another one",
+            });
+        }
         await createGroupDB(name, req.user.id, description, links);
         res.end();
     }
@@ -49,4 +55,8 @@ export async function deleteGroupHandler(req, res) {
     catch (error) {
         console.log(error);
     }
+}
+export async function addNewLinksToGroup(req, res) {
+    const [group_id, link_id] = req.body;
+    await addLinksToGroup(link_id, group_id);
 }

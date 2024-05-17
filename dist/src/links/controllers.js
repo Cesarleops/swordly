@@ -2,6 +2,14 @@ import { createNewLink, deleteLinkFromDb, getSingleLink, getUserLinks, sortByCre
 import { pool } from "../db.js";
 export async function createLink(req, res) {
     try {
+        const linkExists = await getSingleLink(req.body.short);
+        console.log("already exists", linkExists);
+        if (linkExists?.rows.length > 0) {
+            res.json({
+                message: "The short link already exists",
+            });
+            return;
+        }
         if (req.user.links_amount === 20) {
             res.json({
                 ok: "false",
@@ -102,10 +110,26 @@ export async function sortLinks(req, res) {
 }
 export const searchLinkByText = async (req, res) => {
     const { text } = req.query;
-    console.log("t", text);
     const matchedLink = await textSearch(text);
-    console.log("m", matchedLink);
     res.json({
         links: matchedLink,
     });
+};
+export const checkIfShortLinkExists = async (req, res) => {
+    try {
+        const link = await getSingleLink(req.params.id);
+        console.log("f", link);
+        if (link?.rows.length > 0) {
+            res.json({
+                message: "founded",
+            });
+            return;
+        }
+        res.json({
+            message: "not-founded",
+        });
+    }
+    catch (error) {
+        console.log(error);
+    }
 };

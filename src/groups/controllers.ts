@@ -1,8 +1,11 @@
 import { Request, Response } from "express";
 import {
+  addLinksToGroup,
   createGroupDB,
   deleteGroup,
   getGroupById,
+  getGroupByName,
+  getGroupLinks,
   getGroups,
   updateGroup,
 } from "./queries.js";
@@ -13,6 +16,13 @@ export async function createGroup(req: Request, res: Response) {
   console.log("links to insert", links);
 
   try {
+    const checkIfNameExists = await getGroupByName(name);
+    if (checkIfNameExists) {
+      res.json({
+        message:
+          "You already have a group with this name. Please try another one",
+      });
+    }
     await createGroupDB(
       name,
       (req as CustomRequest).user.id,
@@ -63,4 +73,10 @@ export async function deleteGroupHandler(req: Request, res: Response) {
   } catch (error) {
     console.log(error);
   }
+}
+
+export async function addNewLinksToGroup(req: Request, res: Response) {
+  const [group_id, link_id] = req.body;
+
+  await addLinksToGroup(link_id, group_id);
 }

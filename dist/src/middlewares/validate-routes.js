@@ -3,13 +3,11 @@ import { lucia } from "../auth/index.js";
 export const validateRoutes = async (req, res, next) => {
     const cookies = parseCookies(req.headers.cookie ?? "");
     const sessionId = cookies.get("auth_session");
-    console.log("ss", sessionId);
     if (sessionId) {
         try {
             const { user, session } = await lucia.validateSession(sessionId);
             if (session && user) {
                 req.user = user;
-                console.log("llegue");
                 next();
             }
             else {
@@ -21,10 +19,7 @@ export const validateRoutes = async (req, res, next) => {
             }
         }
         catch (error) {
-            throw Error("NONO");
+            throw Error("Something went wrong");
         }
-    }
-    else {
-        throw Error("Invalide Credentials");
     }
 };

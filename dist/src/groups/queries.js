@@ -97,3 +97,9 @@ export const deleteGroup = async (group_id) => {
         console.log("Error al borrar el grupo", error);
     }
 };
+export const getGroupByName = async (name) => {
+    const group = await pool.query(`
+    SELECT * FROM groups WHERE name = $1
+  `, [name]);
+    return group.rows[0];
+};

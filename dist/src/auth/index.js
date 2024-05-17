@@ -8,7 +8,7 @@ const adapter = new NodePostgresAdapter(pool, {
 export const lucia = new Lucia(adapter, {
     sessionCookie: {
         attributes: {
-            secure: process.env.pord === "PRODUCTION", // set `Secure` flag in HTTPS
+            secure: process.env.prod === "PRODUCTION", // set `Secure` flag in HTTPS
         },
     },
     getUserAttributes: (attributes) => {

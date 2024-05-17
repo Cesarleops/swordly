@@ -22,6 +22,14 @@ export interface CustomRequest extends Request {
 }
 export async function createLink(req: Request, res: Response) {
   try {
+    const linkExists = await getSingleLink(req.body.short);
+    console.log("already exists", linkExists);
+    if ((linkExists?.rows.length as number) > 0) {
+      res.json({
+        message: "The short link already exists",
+      });
+      return;
+    }
     if ((req as CustomRequest).user.links_amount === 20) {
       res.json({
         ok: "false",
@@ -131,10 +139,8 @@ export async function sortLinks(req: Request, res: Response) {
 
 export const searchLinkByText = async (req: Request, res: Response) => {
   const { text } = req.query;
-  console.log("t", text);
 
   const matchedLink = await textSearch(text as string);
-  console.log("m", matchedLink);
   res.json({
     links: matchedLink,
   });
