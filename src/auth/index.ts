@@ -1,8 +1,8 @@
 import { NodePostgresAdapter } from "@lucia-auth/adapter-postgresql";
 import { Lucia } from "lucia";
-import { pool } from "../db.js";
+import { db } from "../db.js";
 
-const adapter = new NodePostgresAdapter(pool, {
+const adapter = new NodePostgresAdapter(db, {
   user: "users",
   session: "sessions",
 });
@@ -15,9 +15,11 @@ export const lucia = new Lucia(adapter, {
   },
   getUserAttributes: (attributes) => {
     return {
-      githubId: attributes.github_id,
+      github_id: attributes.github_id,
       username: attributes.username,
       links_amount: attributes.links_amount,
+      email: attributes.email,
+      google_id: attributes.google_id,
     };
   },
 });
@@ -27,8 +29,10 @@ declare module "lucia" {
     Lucia: typeof lucia;
     DatabaseUserAttributes: {
       github_id: number;
+      google_id: number;
       username: string;
       links_amount: number;
+      email: string;
     };
   }
 }

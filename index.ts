@@ -1,10 +1,10 @@
 import express from "express";
 import cors from "cors";
-import { authRouter } from "./src/router.js";
-import { dbInit, pool } from "./src/db.js";
+import { dbInit, db } from "./src/db.js";
 import usersRouter from "./src/users/routes.js";
 import linksRouter from "./src/links/routes.js";
 import { groupsRouter } from "./src/groups/routes.js";
+import { authRouter } from "./src/auth/routes.js";
 
 export const app = express();
 const PORT = 3031;
@@ -20,7 +20,7 @@ app.use("/api", usersRouter);
 app.use("/api", linksRouter);
 app.use("/api", groupsRouter);
 
-const client = await pool.connect();
+const client = await db.connect();
 
 app.listen(PORT, async () => {
   await dbInit();

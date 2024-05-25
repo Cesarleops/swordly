@@ -1,4 +1,4 @@
-import { pool } from "../db.js";
+import { db } from "../db.js";
 
 type Link = {
   original: string;
@@ -9,7 +9,7 @@ type Link = {
 
 export const getSingleLink = async (short: string) => {
   try {
-    const link = await pool.query(
+    const link = await db.query(
       `
             SELECT id, original,clicks FROM links WHERE short = $1 
         `,
@@ -27,7 +27,7 @@ export const createNewLink = async ({
   created_by,
 }: Link) => {
   try {
-    await pool.query(
+    await db.query(
       `
                     INSERT INTO links(original,short,description,created_by) VALUES (
                       $1,
@@ -38,7 +38,7 @@ export const createNewLink = async ({
                   `,
       [original, short, description, created_by],
     );
-    await pool.query(
+    await db.query(
       `
         UPDATE users SET links_amount = links_amount + 1 WHERE id = $1
       `,
@@ -57,7 +57,7 @@ export const createNewLink = async ({
 
 export const getUserLinks = async (id: string) => {
   try {
-    const allLinks = await pool.query(
+    const allLinks = await db.query(
       `
                 SELECT * FROM links WHERE created_by = $1
               `,
@@ -77,11 +77,11 @@ export const getUserLinks = async (id: string) => {
 
 export const deleteLinkFromDb = async (id: string, created_by: string) => {
   try {
-    const deletedLink = await pool.query(
+    const deletedLink = await db.query(
       `DELETE FROM links WHERE id=$1 RETURNING *`,
       [id],
     );
-    await pool.query(
+    await db.query(
       `
      UPDATE users SET links_amount = links_amount - 1 WHERE id = $1
     `,
@@ -98,7 +98,7 @@ export const deleteLinkFromDb = async (id: string, created_by: string) => {
 
 export const updateLink = async ({ id, newData }: any) => {
   try {
-    const updatedLink = await pool.query(
+    const updatedLink = await db.query(
       `
       UPDATE links
       SET 
@@ -120,7 +120,7 @@ export const updateLink = async ({ id, newData }: any) => {
 
 export const sortByCreation = async () => {
   try {
-    const links = await pool.query(`
+    const links = await db.query(`
     SELECT * FROM links ORDER BY created_at DESC
     `);
 
@@ -132,7 +132,7 @@ export const sortByCreation = async () => {
 
 export const sortByNameAsc = async () => {
   try {
-    const links = await pool.query(`
+    const links = await db.query(`
     SELECT * FROM links ORDER BY short ASC
     `);
 
@@ -144,7 +144,7 @@ export const sortByNameAsc = async () => {
 
 export const sortByNameDesc = async () => {
   try {
-    const links = await pool.query(`
+    const links = await db.query(`
   SELECT * FROM links ORDER BY short DESC
   `);
 
@@ -156,7 +156,7 @@ export const sortByNameDesc = async () => {
 
 export const textSearch = async (text: string) => {
   try {
-    const data = await pool.query(
+    const data = await db.query(
       `
       SELECT * FROM links WHERE short LIKE '%' || $1 || '%'
     `,

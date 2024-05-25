@@ -6,13 +6,23 @@ const usersRouter = Router();
 usersRouter.post("/user", createUser);
 usersRouter.get("/user", async (req, res) => {
     const sessionId = parseCookies(req.headers.cookie ?? "").get("auth_session");
+    console.log("session", sessionId);
     if (sessionId) {
         const { user } = await lucia.validateSession(sessionId);
+        console.log("user ", user);
         if (user) {
-            res.json({
-                username: user.username,
-                links_amount: user.links_amount,
-            });
+            if (user.google_id !== null) {
+                return res.json({
+                    username: user.username,
+                    links_amount: user.links_amount,
+                });
+            }
+            if (user.github_id !== null) {
+                return res.json({
+                    username: user.username,
+                    links_amount: user.links_amount,
+                });
+            }
         }
     }
     else {

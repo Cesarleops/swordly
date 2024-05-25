@@ -15,6 +15,7 @@
   "license": "ISC",
   "dependencies": {
     "@lucia-auth/adapter-postgresql": "^3.1.2",
+    "@node-rs/argon2": "^1.8.3",
     "@types/node": "^20.12.7",
     "arctic": "^1.8.0",
     "cors": "^2.8.5",

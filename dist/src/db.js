@@ -1,19 +1,19 @@
 import pg from "pg";
-export const pool = new pg.Pool({
+export const db = new pg.Pool({
     connectionString: process.env.DB_URL,
 });
 export const dbInit = async () => {
     try {
-        await pool.query(`
+        await db.query(`
     DROP TABLE IF EXISTS links CASCADE`);
-        await pool.query(`
+        await db.query(`
     DROP TABLE IF EXISTS group_links`);
-        await pool.query(`
+        await db.query(`
     DROP TABLE IF EXISTS groups`);
-        await pool.query(`
+        await db.query(`
       UPDATE users SET links_amount = 0 
     `);
-        await pool.query(`
+        await db.query(`
     CREATE TABLE links (
       id INTEGER PRIMARY KEY GENERATED ALWAYS AS IDENTITY,
       original TEXT,
@@ -24,7 +24,7 @@ export const dbInit = async () => {
       created_by TEXT REFERENCES users(id)
     );
   `);
-        await pool.query(`
+        await db.query(`
     CREATE TABLE groups(
       id INTEGER PRIMARY KEY GENERATED ALWAYS AS IDENTITY,
       name VARCHAR(255),
@@ -34,14 +34,14 @@ export const dbInit = async () => {
 
     )
   `);
-        await pool.query(`
+        await db.query(`
     CREATE TABLE group_links(
       id INTEGER PRIMARY KEY GENERATED ALWAYS AS IDENTITY,
       link_id INTEGER REFERENCES links(id),
       group_id INTEGER REFERENCES groups(id) 
       )
     `);
-        await pool.query(`
+        await db.query(`
     CREATE INDEX slug ON links(short)
    `);
         console.log("done");

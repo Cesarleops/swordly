@@ -1,4 +1,4 @@
-import { pool } from "../db.js";
+import { db } from "../db.js";
 
 export const createGroupDB = async (
   name: string,
@@ -6,7 +6,7 @@ export const createGroupDB = async (
   description: string,
   links: { id: string }[],
 ) => {
-  const group = await pool.query(
+  const group = await db.query(
     `INSERT INTO groups(name,created_by,description) VALUES($1,$2,$3) RETURNING *`,
     [name, created_by, description],
   );
@@ -20,7 +20,7 @@ export const createGroupDB = async (
 
 export const getGroups = async (id: string) => {
   try {
-    const groups = await pool.query(
+    const groups = await db.query(
       `
           SELECT * FROM groups WHERE created_by = $1
       `,
@@ -35,7 +35,7 @@ export const getGroups = async (id: string) => {
 
 export const getGroupLinks = async (group_id: string) => {
   try {
-    const links = await pool.query(
+    const links = await db.query(
       `
             SELECT * FROM links JOIN group_links ON links.id = group_links.link_id
             WHERE group_links.group_id = $1
@@ -50,7 +50,7 @@ export const getGroupLinks = async (group_id: string) => {
 
 export const addLinksToGroup = async (link: string, group: string) => {
   try {
-    await pool.query(
+    await db.query(
       `
           INSERT INTO group_links(link_id, group_id) VALUES ($1, $2)
       `,
@@ -63,7 +63,7 @@ export const addLinksToGroup = async (link: string, group: string) => {
 
 export const getGroupById = async (id: string) => {
   try {
-    const { rows } = await pool.query(
+    const { rows } = await db.query(
       `
           SELECT * FROM groups WHERE id = $1
       `,
@@ -84,7 +84,7 @@ export const getGroupById = async (id: string) => {
 
 export const deleteLinksFromGroup = async (link_id: any) => {
   try {
-    await pool.query(
+    await db.query(
       `
       DELETE FROM group_links WHERE link_id = $1
     `,
@@ -102,7 +102,7 @@ export const updateGroup = async (
   new_links: any[],
 ) => {
   try {
-    const updatedGroup = await pool.query(
+    const updatedGroup = await db.query(
       `
       UPDATE groups
       SET 
@@ -128,12 +128,12 @@ export const updateGroup = async (
 
 export const deleteGroup = async (group_id: string) => {
   try {
-    await pool.query(
+    await db.query(
       `
     DELETE FROM group_links WHERE group_id = $1`,
       [group_id],
     );
-    const deletedGroup = await pool.query(
+    const deletedGroup = await db.query(
       `
     DELETE FROM groups WHERE id = $1 RETURNING *
   `,
@@ -146,7 +146,7 @@ export const deleteGroup = async (group_id: string) => {
 };
 
 export const getGroupByName = async (name: string) => {
-  const group = await pool.query(
+  const group = await db.query(
     `
     SELECT * FROM groups WHERE name = $1
   `,

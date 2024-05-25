@@ -1,6 +1,6 @@
-import { pool } from "../db.js";
+import { db } from "../db.js";
 export const createGroupDB = async (name, created_by, description, links) => {
-    const group = await pool.query(`INSERT INTO groups(name,created_by,description) VALUES($1,$2,$3) RETURNING *`, [name, created_by, description]);
+    const group = await db.query(`INSERT INTO groups(name,created_by,description) VALUES($1,$2,$3) RETURNING *`, [name, created_by, description]);
     if (links.length > 0) {
         links.forEach(async (li) => {
             await addLinksToGroup(li.id, group.rows[0].id);
@@ -9,7 +9,7 @@ export const createGroupDB = async (name, created_by, description, links) => {
 };
 export const getGroups = async (id) => {
     try {
-        const groups = await pool.query(`
+        const groups = await db.query(`
           SELECT * FROM groups WHERE created_by = $1
       `, [id]);
         return groups.rows;
@@ -20,7 +20,7 @@ export const getGroups = async (id) => {
 };
 export const getGroupLinks = async (group_id) => {
     try {
-        const links = await pool.query(`
+        const links = await db.query(`
             SELECT * FROM links JOIN group_links ON links.id = group_links.link_id
             WHERE group_links.group_id = $1
         `, [group_id]);
@@ -32,7 +32,7 @@ export const getGroupLinks = async (group_id) => {
 };
 export const addLinksToGroup = async (link, group) => {
     try {
-        await pool.query(`
+        await db.query(`
           INSERT INTO group_links(link_id, group_id) VALUES ($1, $2)
       `, [link, group]);
     }
@@ -42,7 +42,7 @@ export const addLinksToGroup = async (link, group) => {
 };
 export const getGroupById = async (id) => {
     try {
-        const { rows } = await pool.query(`
+        const { rows } = await db.query(`
           SELECT * FROM groups WHERE id = $1
       `, [id]);
         console.log("parte g", rows[0]);
@@ -58,7 +58,7 @@ export const getGroupById = async (id) => {
 };
 export const deleteLinksFromGroup = async (link_id) => {
     try {
-        await pool.query(`
+        await db.query(`
       DELETE FROM group_links WHERE link_id = $1
     `, [link_id]);
     }
@@ -68,7 +68,7 @@ export const deleteLinksFromGroup = async (link_id) => {
 };
 export const updateGroup = async (group_id, newName, newDescription, new_links) => {
     try {
-        const updatedGroup = await pool.query(`
+        const updatedGroup = await db.query(`
       UPDATE groups
       SET 
           name = CASE WHEN $1 <> '' THEN $1 ELSE name END,
@@ -90,9 +90,9 @@ export const updateGroup = async (group_id, newName, newDescription, new_links) 
 };
 export const deleteGroup = async (group_id) => {
     try {
-        await pool.query(`
+        await db.query(`
     DELETE FROM group_links WHERE group_id = $1`, [group_id]);
-        const deletedGroup = await pool.query(`
+        const deletedGroup = await db.query(`
     DELETE FROM groups WHERE id = $1 RETURNING *
   `, [group_id]);
         return deletedGroup;
@@ -102,7 +102,7 @@ export const deleteGroup = async (group_id) => {
     }
 };
 export const getGroupByName = async (name) => {
-    const group = await pool.query(`
+    const group = await db.query(`
     SELECT * FROM groups WHERE name = $1
   `, [name]);
     return group.rows[0];

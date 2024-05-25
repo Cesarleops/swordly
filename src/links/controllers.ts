@@ -11,7 +11,7 @@ import {
   textSearch,
   updateLink,
 } from "./queries.js";
-import { pool } from "../db.js";
+import { db } from "../db.js";
 
 export interface CustomRequest extends Request {
   user: {
@@ -69,7 +69,7 @@ export async function getLink(req: Request, res: Response) {
     res.status(302).setHeader("Location", link?.rows[0].original).end();
 
     if (req.headers.purpose !== "prefetch") {
-      await pool.query(
+      await db.query(
         `
       UPDATE links SET clicks = clicks + 1 WHERE id = $1
     `,

@@ -1,5 +1,5 @@
 import { createNewLink, deleteLinkFromDb, getSingleLink, getUserLinks, sortByCreation, sortByNameAsc, sortByNameDesc, textSearch, updateLink, } from "./queries.js";
-import { pool } from "../db.js";
+import { db } from "../db.js";
 export async function createLink(req, res) {
     try {
         const linkExists = await getSingleLink(req.body.short);
@@ -48,7 +48,7 @@ export async function getLink(req, res) {
         const link = await getSingleLink(req.params.id);
         res.status(302).setHeader("Location", link?.rows[0].original).end();
         if (req.headers.purpose !== "prefetch") {
-            await pool.query(`
+            await db.query(`
       UPDATE links SET clicks = clicks + 1 WHERE id = $1
     `, [link?.rows[0].id]);
         }
