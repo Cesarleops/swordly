@@ -12,7 +12,6 @@ usersRouter.get("/user", async (req, res) => {
   const sessionId = parseCookies(req.headers.cookie ?? "").get("auth_session");
   if (sessionId) {
     const { user } = await lucia.validateSession(sessionId);
-    console.log("entra");
     if (user) {
       res.json({
         username: user.username,

@@ -80,7 +80,6 @@ authRouter.get("/login/github/callback", async (req, res) => {
         const githubUserResult = (await githubUserResponse.json());
         const existingUser = await pool.query("SELECT * FROM users WHERE github_id = $1", [githubUserResult.id]);
         if (existingUser.rows.length > 0) {
-            console.log(existingUser.rows[0]);
             const session = await lucia.createSession(existingUser.rows[0].id, {});
             const sessionCookie = lucia.createSessionCookie(session.id);
             return res

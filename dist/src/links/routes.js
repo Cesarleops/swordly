@@ -1,9 +1,8 @@
 import { Router } from "express";
 import { validateRoutes } from "../middlewares/validate-routes.js";
-import { getLink, getAllLinks, createLink, editLink, deleteLink, sortLinks, searchLinkByText, checkIfShortLinkExists, } from "./controllers.js";
+import { getLink, getAllLinks, createLink, editLink, deleteLink, sortLinks, searchLinkByText, } from "./controllers.js";
 const linksRouter = Router();
 linksRouter.get("/links/order", validateRoutes, sortLinks);
-linksRouter.get("/links/exists/:id", validateRoutes, checkIfShortLinkExists);
 linksRouter.get("/links/search", validateRoutes, searchLinkByText);
 linksRouter.get("/links", validateRoutes, getAllLinks);
 linksRouter.get("/links/:id", validateRoutes, getLink);

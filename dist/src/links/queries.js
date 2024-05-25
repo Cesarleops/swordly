@@ -11,7 +11,6 @@ export const getSingleLink = async (short) => {
     }
 };
 export const createNewLink = async ({ original, short, description, created_by, }) => {
-    console.log("original", original);
     try {
         await pool.query(`
                     INSERT INTO links(original,short,description,created_by) VALUES (
@@ -36,7 +35,6 @@ export const createNewLink = async ({ original, short, description, created_by, 
     }
 };
 export const getUserLinks = async (id) => {
-    // console.log("aca", id);
     try {
         const allLinks = await pool.query(`
                 SELECT * FROM links WHERE created_by = $1
@@ -59,10 +57,7 @@ export const deleteLinkFromDb = async (id, created_by) => {
         await pool.query(`
      UPDATE users SET links_amount = links_amount - 1 WHERE id = $1
     `, [created_by]);
-        return {
-            ok: true,
-            deletedLink,
-        };
+        return deletedLink.rows[0];
     }
     catch (error) {
         return {
@@ -72,8 +67,6 @@ export const deleteLinkFromDb = async (id, created_by) => {
     }
 };
 export const updateLink = async ({ id, newData }) => {
-    console.log("id", id);
-    console.log("data", newData);
     try {
         const updatedLink = await pool.query(`
       UPDATE links
@@ -85,7 +78,7 @@ export const updateLink = async ({ id, newData }) => {
       RETURNING *;
       
       `, [newData.original, newData.short, newData.description, id]);
-        return updatedLink;
+        return updatedLink.rows[0];
     }
     catch (error) {
         console.log(error);
@@ -125,12 +118,10 @@ export const sortByNameDesc = async () => {
     }
 };
 export const textSearch = async (text) => {
-    console.log("t", text);
     try {
         const data = await pool.query(`
       SELECT * FROM links WHERE short LIKE '%' || $1 || '%'
     `, [text]);
-        console.log("data", data);
         return data.rows;
     }
     catch (error) {

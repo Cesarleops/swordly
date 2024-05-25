@@ -23,16 +23,16 @@ export interface CustomRequest extends Request {
 export async function createLink(req: Request, res: Response) {
   try {
     const linkExists = await getSingleLink(req.body.short);
-    console.log("already exists", linkExists);
     if ((linkExists?.rows.length as number) > 0) {
       res.json({
+        success: false,
         message: "The short link already exists",
       });
       return;
     }
     if ((req as CustomRequest).user.links_amount === 20) {
       res.json({
-        ok: "false",
+        success: false,
         message: "You already reached your limit links amount.",
       });
       return;
@@ -43,9 +43,8 @@ export async function createLink(req: Request, res: Response) {
       description: req.body.description,
       created_by: (req as CustomRequest).user.id,
     });
-    console.log(result);
     res.json({
-      ok: true,
+      success: true,
     });
   } catch (error) {
     console.log(error);
@@ -55,7 +54,10 @@ export async function createLink(req: Request, res: Response) {
 export async function getAllLinks(req: Request, res: Response) {
   try {
     const links = await getUserLinks((req as CustomRequest).user.id);
-    res.json({ links: links.links?.rows });
+    res.json({
+      success: true,
+      links: links.links?.rows,
+    });
   } catch (error) {
     console.log(error);
   }
@@ -64,7 +66,6 @@ export async function getAllLinks(req: Request, res: Response) {
 export async function getLink(req: Request, res: Response) {
   try {
     const link = await getSingleLink(req.params.id);
-    console.log("single link", link?.rows[0].original);
     res.status(302).setHeader("Location", link?.rows[0].original).end();
 
     if (req.headers.purpose !== "prefetch") {
@@ -81,29 +82,36 @@ export async function getLink(req: Request, res: Response) {
 }
 
 export async function editLink(req: Request, res: Response) {
-  console.log("e", req.body);
   try {
     const editedLink = await updateLink({ id: req.body.id, newData: req.body });
-    console.log("el", editedLink);
-    res.end();
+    const updatedFields = Object.keys(req.body);
+    console.log(updatedFields);
+    res.json({
+      editedLink,
+      success: true,
+    });
   } catch (error) {
     console.log(error);
   }
 }
 
 export async function deleteLink(req: Request, res: Response) {
-  console.log("delete link", req.body);
-  const deletedLink = await deleteLinkFromDb(
-    req.body.id,
-    (req as CustomRequest).user.id,
-  );
-  console.log("dl", deletedLink);
-  res.end();
+  try {
+    const deletedLink = await deleteLinkFromDb(
+      req.body.id,
+      (req as CustomRequest).user.id,
+    );
+    res.json({
+      deletedLink,
+      success: true,
+    });
+  } catch (error) {
+    console.log(error);
+  }
 }
 
 export async function sortLinks(req: Request, res: Response) {
   const { sort } = req.query;
-  console.log("query", sort);
   switch (sort) {
     case "name_asc":
       try {
@@ -140,8 +148,13 @@ export async function sortLinks(req: Request, res: Response) {
 export const searchLinkByText = async (req: Request, res: Response) => {
   const { text } = req.query;
 
-  const matchedLink = await textSearch(text as string);
-  res.json({
-    links: matchedLink,
-  });
+  try {
+    const matchedLink = await textSearch(text as string);
+    res.json({
+      links: matchedLink,
+      success: true,
+    });
+  } catch (error) {
+    console.log(error);
+  }
 };

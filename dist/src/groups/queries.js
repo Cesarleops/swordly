@@ -12,7 +12,7 @@ export const getGroups = async (id) => {
         const groups = await pool.query(`
           SELECT * FROM groups WHERE created_by = $1
       `, [id]);
-        return groups;
+        return groups.rows;
     }
     catch (error) {
         console.log("Error al obtener todos los grupos", error);
@@ -24,7 +24,6 @@ export const getGroupLinks = async (group_id) => {
             SELECT * FROM links JOIN group_links ON links.id = group_links.link_id
             WHERE group_links.group_id = $1
         `, [group_id]);
-        console.log("links dek grpu", links);
         return links;
     }
     catch (error) {
@@ -67,7 +66,7 @@ export const deleteLinksFromGroup = async (link_id) => {
         console.log("error al borrar del grupo", error);
     }
 };
-export const updateGroup = async (group_id, newName, newDescription) => {
+export const updateGroup = async (group_id, newName, newDescription, new_links) => {
     try {
         const updatedGroup = await pool.query(`
       UPDATE groups
@@ -78,6 +77,11 @@ export const updateGroup = async (group_id, newName, newDescription) => {
       RETURNING *;
       
       `, [newName, newDescription, group_id]);
+        if (new_links.length > 0) {
+            new_links.forEach(async (li) => {
+                await addLinksToGroup(li.id, group_id);
+            });
+        }
         return updatedGroup;
     }
     catch (error) {

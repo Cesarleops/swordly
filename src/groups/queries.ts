@@ -27,7 +27,7 @@ export const getGroups = async (id: string) => {
       [id],
     );
 
-    return groups;
+    return groups.rows;
   } catch (error) {
     console.log("Error al obtener todos los grupos", error);
   }
@@ -42,7 +42,6 @@ export const getGroupLinks = async (group_id: string) => {
         `,
       [group_id],
     );
-    console.log("links dek grpu", links);
     return links;
   } catch (error) {
     console.log("f", error);
@@ -100,6 +99,7 @@ export const updateGroup = async (
   group_id: string,
   newName: String,
   newDescription: string,
+  new_links: any[],
 ) => {
   try {
     const updatedGroup = await pool.query(
@@ -114,6 +114,12 @@ export const updateGroup = async (
       `,
       [newName, newDescription, group_id],
     );
+
+    if (new_links.length > 0) {
+      new_links.forEach(async (li) => {
+        await addLinksToGroup(li.id, group_id);
+      });
+    }
     return updatedGroup;
   } catch (error) {
     console.log("error al actualizar grupo", error);

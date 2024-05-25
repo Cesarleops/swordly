@@ -105,7 +105,6 @@ authRouter.get(
       );
 
       if (existingUser.rows.length > 0) {
-        console.log(existingUser.rows[0]);
         const session = await lucia.createSession(existingUser.rows[0].id, {});
         const sessionCookie = lucia.createSessionCookie(session.id);
         return res

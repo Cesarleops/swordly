@@ -26,7 +26,6 @@ export const createNewLink = async ({
   description,
   created_by,
 }: Link) => {
-  console.log("original", original);
   try {
     await pool.query(
       `
@@ -57,7 +56,6 @@ export const createNewLink = async ({
 };
 
 export const getUserLinks = async (id: string) => {
-  // console.log("aca", id);
   try {
     const allLinks = await pool.query(
       `
@@ -89,10 +87,7 @@ export const deleteLinkFromDb = async (id: string, created_by: string) => {
     `,
       [created_by],
     );
-    return {
-      ok: true,
-      deletedLink,
-    };
+    return deletedLink.rows[0];
   } catch (error: any) {
     return {
       success: false,
@@ -102,8 +97,6 @@ export const deleteLinkFromDb = async (id: string, created_by: string) => {
 };
 
 export const updateLink = async ({ id, newData }: any) => {
-  console.log("id", id);
-  console.log("data", newData);
   try {
     const updatedLink = await pool.query(
       `
@@ -119,7 +112,7 @@ export const updateLink = async ({ id, newData }: any) => {
       [newData.original, newData.short, newData.description, id],
     );
 
-    return updatedLink;
+    return updatedLink.rows[0];
   } catch (error) {
     console.log(error);
   }
@@ -162,7 +155,6 @@ export const sortByNameDesc = async () => {
 };
 
 export const textSearch = async (text: string) => {
-  console.log("t", text);
   try {
     const data = await pool.query(
       `
@@ -171,7 +163,6 @@ export const textSearch = async (text: string) => {
       [text],
     );
 
-    console.log("data", data);
     return data.rows;
   } catch (error) {
     console.log(error);
