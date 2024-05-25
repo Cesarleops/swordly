@@ -1,7 +1,7 @@
 import { hash, verify } from "@node-rs/argon2";
 import { Request, Response } from "express";
 import { generateIdFromEntropySize } from "lucia";
-import { login, register } from "./queries.js";
+import { checkIfUserExists, register } from "./queries.js";
 import { lucia } from "./index.js";
 import { generateState, generateCodeVerifier } from "arctic";
 import { github, google } from "./oauth.js";
@@ -11,13 +11,26 @@ import { db } from "../db.js";
 export const signUp = async (req: Request, res: Response) => {
   const { email, password } = req.body;
 
+  console.log("re", req.body);
   if (!email || typeof email !== "string") {
+    console.log("email mal");
     return res.status(400).json({
       success: false,
     });
   }
   if (!password || typeof password !== "string" || password.length < 6) {
+    console.log("pass mal");
+
     return res.status(400).json({
+      success: false,
+    });
+  }
+
+  const user = await checkIfUserExists(email);
+
+  if (user) {
+    return res.status(400).json({
+      message: "Email is taken",
       success: false,
     });
   }
@@ -28,18 +41,22 @@ export const signUp = async (req: Request, res: Response) => {
     outputLen: 32,
     parallelism: 1,
   });
+  console.log("pas", hashedPassword.length);
   const userId = generateIdFromEntropySize(10);
 
   try {
     await register(userId, email, hashedPassword);
     const session = await lucia.createSession(userId, {});
     const sessionCookie = lucia.createSessionCookie(session.id);
-
+    console.log("cookie", sessionCookie);
     res
-      .status(302)
       .cookie(sessionCookie.name, sessionCookie.value, sessionCookie.attributes)
-      .setHeader("Location", "http://localhost:3000/dashboard")
-      .end();
+      .status(200)
+      .json({
+        success: true,
+        message: "User signed in successfully",
+        redirectUrl: "/dashboard",
+      });
   } catch (error) {
     console.log("error al registrarse", error);
   }
@@ -59,7 +76,7 @@ export const signIn = async (req: Request, res: Response) => {
     });
   }
 
-  const user = await login(email);
+  const user = await checkIfUserExists(email);
   if (!user) {
     return res.status(400).json({
       success: false,
@@ -83,10 +100,13 @@ export const signIn = async (req: Request, res: Response) => {
   const sessionCookie = lucia.createSessionCookie(session.id);
 
   res
-    .status(302)
     .cookie(sessionCookie.name, sessionCookie.value, sessionCookie.attributes)
-    .setHeader("Location", "http://localhost:3000/dashboard")
-    .end();
+    .status(200)
+    .json({
+      success: true,
+      message: "User login successfully",
+      redirectUrl: "/dashboard",
+    });
 };
 
 export const githubLogin = async (req: Request, res: Response) => {

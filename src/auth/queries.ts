@@ -4,7 +4,7 @@ export const register = async (id: string, email: string, password: string) => {
   try {
     await db.query(
       `
-                INSERT INTO users(id, email,password) VALUES $1 ,$2, $3
+                INSERT INTO users(id, email,password_hash) VALUES ($1 ,$2, $3)
             `,
       [id, email, password],
     );
@@ -13,7 +13,7 @@ export const register = async (id: string, email: string, password: string) => {
   }
 };
 
-export const login = async (email: string) => {
+export const checkIfUserExists = async (email: string) => {
   try {
     const user = await db.query(
       `

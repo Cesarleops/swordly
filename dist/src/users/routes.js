@@ -6,6 +6,7 @@ const usersRouter = Router();
 usersRouter.post("/user", createUser);
 usersRouter.get("/user", async (req, res) => {
     const sessionId = parseCookies(req.headers.cookie ?? "").get("auth_session");
+    console.log("sess", parseCookies(req.headers.cookie ?? ""));
     console.log("session", sessionId);
     if (sessionId) {
         const { user } = await lucia.validateSession(sessionId);
@@ -23,6 +24,12 @@ usersRouter.get("/user", async (req, res) => {
                     links_amount: user.links_amount,
                 });
             }
+            const customUsername = user.email.slice(0, user.email.indexOf("@"));
+            console.log(customUsername);
+            return res.json({
+                username: customUsername,
+                links_amount: user.links_amount,
+            });
         }
     }
     else {
