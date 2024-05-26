@@ -2,6 +2,7 @@ import { Router } from "express";
 import { parseCookies } from "oslo/cookie";
 import { lucia } from "../auth/index.js";
 import { createUser } from "./controllers.js";
+import { db } from "../db.js";
 const usersRouter = Router();
 usersRouter.post("/user", createUser);
 usersRouter.get("/user", async (req, res) => {
@@ -16,12 +17,14 @@ usersRouter.get("/user", async (req, res) => {
                 return res.json({
                     username: user.username,
                     links_amount: user.links_amount,
+                    id: user.id,
                 });
             }
             if (user.github_id !== null) {
                 return res.json({
                     username: user.username,
                     links_amount: user.links_amount,
+                    id: user.id,
                 });
             }
             const customUsername = user.email.slice(0, user.email.indexOf("@"));
@@ -29,6 +32,7 @@ usersRouter.get("/user", async (req, res) => {
             return res.json({
                 username: customUsername,
                 links_amount: user.links_amount,
+                id: user.id,
             });
         }
     }
@@ -36,6 +40,19 @@ usersRouter.get("/user", async (req, res) => {
         res.status(404).json({
             user: "Invalid User",
         });
+    }
+});
+usersRouter.get("/user/delete/:id", async (req, res) => {
+    const { id } = req.params;
+    console.log("viene aca con este id", id);
+    try {
+        await db.query(`
+          DELETE FROM users WHERE id = $1
+    `, [id]);
+        res.status(302).setHeader("Location", "http://localhost:3000/login").end();
+    }
+    catch (error) {
+        console.log("error borrando al usuario", error);
     }
 });
 export default usersRouter;

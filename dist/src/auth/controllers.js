@@ -10,14 +10,14 @@ export const signUp = async (req, res) => {
     const { email, password } = req.body;
     console.log("re", req.body);
     if (!email || typeof email !== "string") {
-        console.log("email mal");
         return res.status(400).json({
+            message: "check if its a valid email",
             success: false,
         });
     }
     if (!password || typeof password !== "string" || password.length < 6) {
-        console.log("pass mal");
         return res.status(400).json({
+            message: "Check if the password is missing or shorter than 6 characters",
             success: false,
         });
     }
@@ -34,7 +34,6 @@ export const signUp = async (req, res) => {
         outputLen: 32,
         parallelism: 1,
     });
-    console.log("pas", hashedPassword.length);
     const userId = generateIdFromEntropySize(10);
     try {
         await register(userId, email, hashedPassword);

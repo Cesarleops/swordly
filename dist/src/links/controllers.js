@@ -59,6 +59,7 @@ export async function getLink(req, res) {
 }
 export async function editLink(req, res) {
     try {
+        console.log("edicion de link", req.body);
         const editedLink = await updateLink({ id: req.body.id, newData: req.body });
         const updatedFields = Object.keys(req.body);
         console.log(updatedFields);
