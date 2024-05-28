@@ -114,7 +114,6 @@ usersRouter.post("/user/reset-password", async (req, res) => {
       [hashedOTP, recovery_email, otp_expires_at, token, token_expires_at],
     );
 
-    console.log("ee", email);
     const info = await transporter.sendMail({
       from: "info@demomailtrap.com",
       to: req.body.recovery_email.toString(),
@@ -165,19 +164,30 @@ usersRouter.post("/user/reset-password", async (req, res) => {
 });
 
 usersRouter.post("/user/validate-otp", async (req, res) => {
-  console.log("vengo a validar");
   const { user_otp, recovery_email } = req.body;
-  console.log(req.body);
   try {
     const otp_table = await db.query(
       `
-      SELECT otp, id, token FROM verifications WHERE user_email = $1
+      SELECT otp, id, token, otp_expires_at FROM verifications WHERE user_email = $1
     `,
       [recovery_email],
     );
     console.log("table", otp_table);
+    if (new Date() > otp_table.rows[0].otp_expires_at) {
+      await db.query(
+        `
+        DELETE FROM verifications WHERE user_email = $1
+      `,
+        [recovery_email],
+      );
+
+      return res.json({
+        success: false,
+        message: "Your Code expired.",
+      });
+    }
+
     const verifyOTP = await verify(otp_table.rows[0].otp, user_otp);
-    console.log("o", verifyOTP);
     if (verifyOTP) {
       res.json({
         success: true,
@@ -186,7 +196,6 @@ usersRouter.post("/user/validate-otp", async (req, res) => {
       return;
     }
   } catch (error) {
-    console.log("vef", error);
     res.json({
       success: false,
     });
@@ -195,32 +204,60 @@ usersRouter.post("/user/validate-otp", async (req, res) => {
 
 usersRouter.post("/user/update-password/:token", async (req, res) => {
   const { token } = req.params;
-  const { new_password } = req.body;
-  const otp_table = await db.query(
-    `
-    SELECT user_email, token_expires_at FROM verifications WHERE token = $1
+  const { newPassword } = req.body;
+  console.log(token, newPassword);
+
+  try {
+    const otp_table = await db.query(
+      `
+      SELECT user_email, token_expires_at FROM verifications WHERE token = $1
+    `,
+      [token],
+    );
+
+    if (new Date() > otp_table.rows[0].token_expires_at) {
+      await db.query(
+        `
+      DELETE FROM verifications WHERE token = $1
+    `,
+        [token],
+      );
+
+      return res.json({
+        success: false,
+        message: "Your Code expired.",
+      });
+    }
+
+    const hashNewPassword = await hash(newPassword, {
+      memoryCost: 19456,
+      timeCost: 2,
+      outputLen: 32,
+      parallelism: 1,
+    });
+
+    const updatedUser = await db.query(
+      `
+      UPDATE users SET password_hash = $1 WHERE email = $2
+    `,
+      [hashNewPassword, otp_table.rows[0].user_email],
+    );
+    await db.query(
+      `
+    DELETE FROM verifications WHERE token = $1
   `,
-    [token],
-  );
+      [token],
+    );
 
-  //check if the token expired
-  const hashNewPassword = hash(new_password, {
-    memoryCost: 19456,
-    timeCost: 2,
-    outputLen: 32,
-    parallelism: 1,
-  });
-
-  const updatedUser = await db.query(
-    `
-    UPDATE users SET password_hash = $1 WHERE email = $2
-  `,
-    [hashNewPassword, otp_table.rows[0].user_email],
-  );
-
-  res.json({
-    success: true,
-  });
+    res.json({
+      success: true,
+    });
+  } catch (error) {
+    console.log(error);
+    res.json({
+      success: false,
+    });
+  }
 });
 
 export default usersRouter;

@@ -11,7 +11,6 @@ import { db } from "../db.js";
 export const signUp = async (req: Request, res: Response) => {
   const { email, password } = req.body;
 
-  console.log("re", req.body);
   if (!email || typeof email !== "string") {
     return res.status(400).json({
       message: "check if its a valid email",
@@ -46,7 +45,6 @@ export const signUp = async (req: Request, res: Response) => {
     await register(userId, email, hashedPassword);
     const session = await lucia.createSession(userId, {});
     const sessionCookie = lucia.createSessionCookie(session.id);
-    console.log("cookie", sessionCookie);
     res
       .cookie(sessionCookie.name, sessionCookie.value, sessionCookie.attributes)
       .status(200)
@@ -212,9 +210,7 @@ export const googleLoginCallback = async (req: Request, res: Response) => {
     const state = req.query.state;
 
     const codeVerifier = cookies.get("google_oauth_verifier");
-    console.log("codigo", code);
-    console.log("verificador", codeVerifier);
-    console.log("state", state);
+
     if (!code || !codeVerifier) {
       res.status(404).send("Something went Wrong");
     }
@@ -258,7 +254,6 @@ export const googleLoginCallback = async (req: Request, res: Response) => {
       "INSERT INTO users(id,username, google_id) VALUES($1, $2, $3) RETURNING *",
       [userId, user.name, user?.sub],
     );
-    console.log("new go", newUser);
     const session = await lucia.createSession(userId, {});
     const sessionCookie = lucia.createSessionCookie(session.id);
 
