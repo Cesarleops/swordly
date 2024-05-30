@@ -7,7 +7,6 @@ import { groupsRouter } from "./src/groups/routes.js";
 import { authRouter } from "./src/auth/routes.js";
 
 export const app = express();
-const PORT = 3031;
 const corsOptions = {
   origin: /^http:\/\/localhost:3000(\/.*)?$/,
   credentials: true,
@@ -21,7 +20,9 @@ app.use("/api", linksRouter);
 app.use("/api", groupsRouter);
 
 const client = await db.connect();
-
+const env = process.env.NODE_ENV || "development";
+const config = require(`./config/${env}`);
+const PORT = config.port;
 app.listen(PORT, async () => {
   await dbInit();
   console.log("Hey! Server just started");
