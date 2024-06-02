@@ -5,9 +5,9 @@
   "main": "index.js",
   "type": "module",
   "scripts": {
-    "build": "tsc",
+    "build": "tsc -p tsconfig.json",
     "dev": "tsc -w",
-    "start": "node dist && ls dist",
+    "start": "ls dist && node dist/index.js",
     "localstart": "node --watch --env-file .env dist/index.js",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
