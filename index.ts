@@ -15,10 +15,9 @@ const corsOptions = {
   ],
   credentials: true,
 };
-
+app.set("trust proxy", 1);
 app.use(cors(corsOptions));
 app.use(express.json());
-
 app.use("/api", authRouter);
 app.use("/api", usersRouter);
 app.use("/api", linksRouter);
