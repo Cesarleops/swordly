@@ -14,6 +14,7 @@ export const lucia = new Lucia(adapter, {
 
     attributes: {
       sameSite: "none",
+      domain: "swordly.onrender.com",
 
       secure: process.env.NODE_ENV !== "development", // set `Secure` flag in HTTPS
     },
