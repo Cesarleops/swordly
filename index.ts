@@ -23,10 +23,10 @@ app.use("/api", usersRouter);
 app.use("/api", linksRouter);
 app.use("/api", groupsRouter);
 
-const client = await db.connect();
 const PORT = envConfig.PORT;
 app.listen(PORT, async () => {
   console.log(PORT);
   await dbInit();
+  await db.connect();
   console.log("Hey! Server just started");
 });

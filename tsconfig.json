@@ -1,12 +1,14 @@
 {
   "compilerOptions": {
-    "sourceMap": true,
+    "lib": ["es2023"],
+    "module": "node16",
+    "target": "es2022",
     "outDir": "./dist",
-    "rootDir": "./src",
-    "strict": false,
-    "lib": ["esnext"],
+    "rootDir": "./",
+    "strict": true,
     "esModuleInterop": true,
-    "declaration": true
+    "skipLibCheck": true,
+    "moduleResolution": "node16"
   },
-  "include": ["src/**/*.ts", "dist/*"]
+  "include": ["**/*.ts"]
 }
