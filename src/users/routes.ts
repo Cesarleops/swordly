@@ -1,13 +1,13 @@
 import { Router } from "express";
 import { parseCookies } from "oslo/cookie";
 import { lucia } from "../auth/index.js";
-import { createUser } from "./controllers.js";
 import { hash, verify } from "@node-rs/argon2";
 
 import nodemailer from "nodemailer";
 import { db } from "../db.js";
 import { checkIfUserExists } from "../auth/queries.js";
 import { generateIdFromEntropySize } from "lucia";
+import { envConfig } from "../config/index.js";
 
 const usersRouter = Router();
 
@@ -58,13 +58,11 @@ usersRouter.get("/user/delete/:id", async (req, res) => {
     `,
       [id],
     );
-    res.status(302).setHeader("Location", "http://localhost:3000/login").end();
+    res.status(302).setHeader("Location", `${envConfig.clientUrl}/login`).end();
   } catch (error) {
     console.log("error borrando al usuario", error);
   }
 });
-
-usersRouter.post("/user", createUser);
 
 usersRouter.post("/user/reset-password", async (req, res) => {
   const { recovery_email } = req.body;

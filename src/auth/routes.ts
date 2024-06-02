@@ -10,6 +10,7 @@ import {
   signIn,
   signUp,
 } from "./controllers.js";
+import { envConfig } from "../config/index.js";
 
 export const authRouter = Router();
 
@@ -33,6 +34,6 @@ authRouter.get("/logout", async (req, res) => {
     const sessionCookie = lucia.createBlankSessionCookie();
     res
       .cookie(sessionCookie.name, sessionCookie.value, sessionCookie.attributes)
-      .redirect("http://localhost:3000/login");
+      .redirect(`${envConfig.clientUrl}/login`);
   }
 });

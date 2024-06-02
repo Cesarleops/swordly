@@ -7,6 +7,7 @@ import { generateState, generateCodeVerifier } from "arctic";
 import { github, google } from "./oauth.js";
 import { parseCookies } from "oslo/cookie";
 import { db } from "../db.js";
+import { envConfig } from "../config/index.js";
 
 export const signUp = async (req: Request, res: Response) => {
   const { email, password } = req.body;
@@ -141,7 +142,9 @@ export const githubLoginCallback = async (req: Request, res: Response) => {
     const githubUserResult: GitHubUserResult =
       (await githubUserResponse.json()) as GitHubUserResult;
 
-    console.log("github result", githubUserResult);
+    console.log("environment", process.env.NODE_ENV);
+    console.log("environment config", envConfig);
+
     const existingUser = await db.query(
       "SELECT * FROM users WHERE github_id = $1",
       [githubUserResult.id],
@@ -157,7 +160,7 @@ export const githubLoginCallback = async (req: Request, res: Response) => {
           sessionCookie.value,
           sessionCookie.attributes,
         )
-        .setHeader("Location", "http://localhost:3000/dashboard")
+        .setHeader("Location", `${envConfig.clientUrl}/dashboard`)
         .end();
     }
 
@@ -172,7 +175,7 @@ export const githubLoginCallback = async (req: Request, res: Response) => {
     res
       .status(302)
       .cookie(sessionCookie.name, sessionCookie.value, sessionCookie.attributes)
-      .setHeader("Location", "http://localhost:3000/dashboard")
+      .setHeader("Location", `${envConfig.clientUrl}/dashboard`)
       .end();
   } catch (error) {
     console.log("error creando", error);
@@ -228,7 +231,8 @@ export const googleLoginCallback = async (req: Request, res: Response) => {
         },
       },
     );
-    const user = await response.json();
+
+    const user = (await response.json()) as GoogleUser;
 
     const existingUser = await db.query(
       "SELECT * FROM users WHERE google_id = $1",
@@ -245,7 +249,7 @@ export const googleLoginCallback = async (req: Request, res: Response) => {
           sessionCookie.value,
           sessionCookie.attributes,
         )
-        .setHeader("Location", "http://localhost:3000/dashboard")
+        .setHeader("Location", `${envConfig.clientUrl}/dashboard`)
         .end();
     }
 
@@ -260,15 +264,23 @@ export const googleLoginCallback = async (req: Request, res: Response) => {
     res
       .status(302)
       .cookie(sessionCookie.name, sessionCookie.value, sessionCookie.attributes)
-      .setHeader("Location", "http://localhost:3000/dashboard")
+      .setHeader("Location", `${envConfig.clientUrl}/dashboard`)
       .end();
   } catch (error) {
     console.log("error creando google", error);
-    res.redirect("http://localhost:3000/login");
+    res.redirect(`${envConfig.clientUrl}/login`);
   }
 };
 
 interface GitHubUserResult {
   id: number;
   login: string;
+}
+
+interface GoogleUser {
+  sub: string; // Add other fields as necessary
+  name?: string;
+  email?: string;
+  picture?: string;
+  // Add any other fields you expect in the response
 }

@@ -8,7 +8,10 @@ import { authRouter } from "./src/auth/routes.js";
 
 export const app = express();
 const corsOptions = {
-  origin: /^http:\/\/localhost:3000(\/.*)?$/,
+  origin: [
+    /^http:\/\/localhost:3000(\/.*)?$/,
+    "https://swordly-front.vercel.app/",
+  ],
   credentials: true,
 };
 app.use(cors(corsOptions));
@@ -21,9 +24,9 @@ app.use("/api", groupsRouter);
 
 const client = await db.connect();
 const env = process.env.NODE_ENV || "development";
-const config = require(`./config/${env}`);
-const PORT = config.port;
+const PORT = 3031;
 app.listen(PORT, async () => {
+  console.log(PORT);
   await dbInit();
   console.log("Hey! Server just started");
 });

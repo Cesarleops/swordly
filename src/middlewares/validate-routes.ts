@@ -2,6 +2,7 @@ import { Response, Request, NextFunction } from "express";
 import { parseCookies } from "oslo/cookie";
 import { lucia } from "../auth/index.js";
 import { CustomRequest } from "../links/controllers.js";
+import { envConfig } from "../config/index.js";
 export const validateRoutes = async (
   req: Request,
   res: Response,
@@ -24,7 +25,7 @@ export const validateRoutes = async (
             sessionCookie.value,
             sessionCookie.attributes,
           )
-          .redirect("http://localhost:3000/login");
+          .redirect(`${envConfig.clientUrl}/login`);
       }
     } catch (error) {
       throw Error("Something went wrong");
