@@ -12,10 +12,11 @@ const corsOptions = {
   origin: [
     /^http:\/\/localhost:3000(\/.*)?$/,
     "https://swordly-front.vercel.app",
+    "https://swordly-front.vercel.app/dashboard",
   ],
   credentials: true,
+  allowedHeaders: ["Content-Type", "Authorization", "X-Requested-With"],
 };
-app.set("trust proxy", 1);
 app.use(cors(corsOptions));
 app.use(express.json());
 app.use("/api", authRouter);
