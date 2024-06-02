@@ -14,7 +14,7 @@ export const lucia = new Lucia(adapter, {
 
     attributes: {
       sameSite: "none",
-      domain: envConfig.clientUrl,
+      domain: "swordly-front.vercel.app",
       secure: process.env.NODE_ENV !== "development", // set `Secure` flag in HTTPS
     },
   },

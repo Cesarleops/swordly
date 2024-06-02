@@ -143,9 +143,6 @@ export const githubLoginCallback = async (req: Request, res: Response) => {
     const githubUserResult: GitHubUserResult =
       (await githubUserResponse.json()) as GitHubUserResult;
 
-    console.log("environment", process.env.NODE_ENV);
-    console.log("environment config", envConfig);
-    console.log(githubUserResult);
     const existingUser = await db.query(
       "SELECT * FROM users WHERE github_id = $1",
       [githubUserResult.id],
