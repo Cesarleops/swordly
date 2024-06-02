@@ -1,7 +1,6 @@
 import { NodePostgresAdapter } from "@lucia-auth/adapter-postgresql";
 import { Lucia } from "lucia";
 import { db } from "../db.js";
-import { envConfig } from "../config/index.js";
 
 const adapter = new NodePostgresAdapter(db, {
   user: "users",
@@ -11,11 +10,7 @@ const adapter = new NodePostgresAdapter(db, {
 export const lucia = new Lucia(adapter, {
   sessionCookie: {
     expires: false,
-
     attributes: {
-      sameSite: "none",
-      domain: "swordly.onrender.com",
-
       secure: process.env.NODE_ENV !== "development", // set `Secure` flag in HTTPS
     },
   },
