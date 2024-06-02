@@ -145,7 +145,7 @@ export const githubLoginCallback = async (req: Request, res: Response) => {
 
     console.log("environment", process.env.NODE_ENV);
     console.log("environment config", envConfig);
-
+    console.log(githubUserResult);
     const existingUser = await db.query(
       "SELECT * FROM users WHERE github_id = $1",
       [githubUserResult.id],
@@ -170,6 +170,7 @@ export const githubLoginCallback = async (req: Request, res: Response) => {
       "INSERT INTO users(id,username,github_id) VALUES($1, $2, $3) RETURNING *",
       [userId, githubUserResult.login, githubUserResult.id],
     );
+    console.log(userId);
     const session = await lucia.createSession(userId, {});
     const sessionCookie = lucia.createSessionCookie(session.id);
 
