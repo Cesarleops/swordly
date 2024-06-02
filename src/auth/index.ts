@@ -10,8 +10,8 @@ const nodeEnv = process.env.NODE_ENV || "development";
 
 export const lucia = new Lucia(adapter, {
   sessionCookie: {
-    expires: false,
     attributes: {
+      domain: nodeEnv !== "development" ? "swordly-front.vercel.app" : "",
       secure: nodeEnv !== "development", // set `Secure` flag in HTTPS
     },
   },
