@@ -46,6 +46,7 @@ export const signUp = async (req: Request, res: Response) => {
     await register(userId, email, hashedPassword);
     const session = await lucia.createSession(userId, {});
     const sessionCookie = lucia.createSessionCookie(session.id);
+    console.log("coo", sessionCookie);
     res
       .cookie(sessionCookie.name, sessionCookie.value, sessionCookie.attributes)
       .status(200)

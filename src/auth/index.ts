@@ -13,8 +13,6 @@ export const lucia = new Lucia(adapter, {
     expires: false,
 
     attributes: {
-      sameSite: "lax",
-      domain: "swordly-front.vercel.app",
       secure: process.env.NODE_ENV !== "development", // set `Secure` flag in HTTPS
     },
   },
