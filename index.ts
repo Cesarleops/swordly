@@ -5,12 +5,13 @@ import usersRouter from "./src/users/routes.js";
 import linksRouter from "./src/links/routes.js";
 import { groupsRouter } from "./src/groups/routes.js";
 import { authRouter } from "./src/auth/routes.js";
+import { envConfig } from "./src/config/index.js";
 
 export const app = express();
 const corsOptions = {
   origin: [
     /^http:\/\/localhost:3000(\/.*)?$/,
-    "https://swordly-front.vercel.app/",
+    "https://swordly-front.vercel.app",
   ],
   credentials: true,
 };
@@ -23,8 +24,7 @@ app.use("/api", linksRouter);
 app.use("/api", groupsRouter);
 
 const client = await db.connect();
-const env = process.env.NODE_ENV || "development";
-const PORT = 3031;
+const PORT = envConfig.PORT;
 app.listen(PORT, async () => {
   console.log(PORT);
   await dbInit();

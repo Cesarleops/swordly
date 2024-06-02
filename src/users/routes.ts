@@ -2,6 +2,7 @@ import { Router } from "express";
 import { parseCookies } from "oslo/cookie";
 import { lucia } from "../auth/index.js";
 import { hash, verify } from "@node-rs/argon2";
+import { Request, Response } from "express";
 
 import nodemailer from "nodemailer";
 import { db } from "../db.js";
@@ -11,7 +12,7 @@ import { envConfig } from "../config/index.js";
 
 const usersRouter = Router();
 
-usersRouter.get("/user", async (req, res) => {
+usersRouter.get("/user", async (req: Request, res: Response) => {
   const sessionId = parseCookies(req.headers.cookie ?? "").get("auth_session");
   console.log("sess", parseCookies(req.headers.cookie ?? ""));
   console.log("session", sessionId);
@@ -48,7 +49,7 @@ usersRouter.get("/user", async (req, res) => {
   }
 });
 
-usersRouter.get("/user/delete/:id", async (req, res) => {
+usersRouter.get("/user/delete/:id", async (req: Request, res: Response) => {
   const { id } = req.params;
   console.log("viene aca con este id", id);
   try {
@@ -64,60 +65,62 @@ usersRouter.get("/user/delete/:id", async (req, res) => {
   }
 });
 
-usersRouter.post("/user/reset-password", async (req, res) => {
-  const { recovery_email } = req.body;
+usersRouter.post(
+  "/user/reset-password",
+  async (req: Request, res: Response) => {
+    const { recovery_email } = req.body;
 
-  try {
-    const user = await checkIfUserExists(recovery_email);
-    if (!user) {
-      return res.status(400).json({
-        success: false,
-        message:
-          "an email will be sent to this email if an account is registered under it.",
+    try {
+      const user = await checkIfUserExists(recovery_email);
+      if (!user) {
+        return res.status(400).json({
+          success: false,
+          message:
+            "an email will be sent to this email if an account is registered under it.",
+        });
+      }
+
+      const token = generateIdFromEntropySize(10);
+      let transporter = nodemailer.createTransport({
+        host: "send.smtp.mailtrap.io",
+        port: 587,
+        auth: {
+          user: process.env.MAILER_USER,
+          pass: process.env.MAILER_PASSWORD,
+        },
       });
-    }
 
-    const token = generateIdFromEntropySize(10);
-    let transporter = nodemailer.createTransport({
-      host: "send.smtp.mailtrap.io",
-      port: 587,
-      auth: {
-        user: process.env.MAILER_USER,
-        pass: process.env.MAILER_PASSWORD,
-      },
-    });
+      // transporter.verify(function (error, success) {
+      //   if (error) {
+      //     console.log(error);
+      //   } else {
+      //     console.log("Server is ready to take our messages");
+      //   }
+      // });
 
-    // transporter.verify(function (error, success) {
-    //   if (error) {
-    //     console.log(error);
-    //   } else {
-    //     console.log("Server is ready to take our messages");
-    //   }
-    // });
+      const otp = Math.floor(Math.random() * 9000 + 1000);
+      const hashedOTP = await hash(otp.toString(), {
+        memoryCost: 19456,
+        timeCost: 2,
+        outputLen: 32,
+        parallelism: 1,
+      });
+      const otp_expires_at = new Date(Date.now() + 2 * 60 * 1000);
+      const token_expires_at = new Date(Date.now() + 2 * 60 * 1000);
 
-    const otp = Math.floor(Math.random() * 9000 + 1000);
-    const hashedOTP = await hash(otp.toString(), {
-      memoryCost: 19456,
-      timeCost: 2,
-      outputLen: 32,
-      parallelism: 1,
-    });
-    const otp_expires_at = new Date(Date.now() + 2 * 60 * 1000);
-    const token_expires_at = new Date(Date.now() + 2 * 60 * 1000);
-
-    const email = await db.query(
-      `
+      const email = await db.query(
+        `
         INSERT INTO verifications(otp,user_email, otp_expires_at,token, token_expires_at) VALUES($1,$2, $3, $4, $5) RETURNING user_email
       `,
-      [hashedOTP, recovery_email, otp_expires_at, token, token_expires_at],
-    );
+        [hashedOTP, recovery_email, otp_expires_at, token, token_expires_at],
+      );
 
-    const info = await transporter.sendMail({
-      from: "info@demomailtrap.com",
-      to: req.body.recovery_email.toString(),
-      subject: "Swordly Restore Password",
+      const info = await transporter.sendMail({
+        from: "info@demomailtrap.com",
+        to: req.body.recovery_email.toString(),
+        subject: "Swordly Restore Password",
 
-      html: `<!DOCTYPE html>
+        html: `<!DOCTYPE html>
       <html lang="en" >
       <head>
         <meta charset="UTF-8">
@@ -145,23 +148,24 @@ usersRouter.post("/user/reset-password", async (req, res) => {
         
       </body>
       </html>`,
-    });
-    res.json({
-      success: true,
-      message:
-        "an email will be sent to this email if an account is registered under it.",
-      recovery_email: email.rows[0].user_email,
-    });
-  } catch (error) {
-    res.json({
-      success: true,
-      message:
-        "an email will be sent to this email if an account is registered under it.",
-    });
-  }
-});
+      });
+      res.json({
+        success: true,
+        message:
+          "an email will be sent to this email if an account is registered under it.",
+        recovery_email: email.rows[0].user_email,
+      });
+    } catch (error) {
+      res.json({
+        success: false,
+        message:
+          "an email will be sent to this email if an account is registered under it.",
+      });
+    }
+  },
+);
 
-usersRouter.post("/user/validate-otp", async (req, res) => {
+usersRouter.post("/user/validate-otp", async (req: Request, res: Response) => {
   const { user_otp, recovery_email } = req.body;
   try {
     const otp_table = await db.query(
@@ -200,62 +204,65 @@ usersRouter.post("/user/validate-otp", async (req, res) => {
   }
 });
 
-usersRouter.post("/user/update-password/:token", async (req, res) => {
-  const { token } = req.params;
-  const { newPassword } = req.body;
-  console.log(token, newPassword);
+usersRouter.post(
+  "/user/update-password/:token",
+  async (req: Request, res: Response) => {
+    const { token } = req.params;
+    const { newPassword } = req.body;
+    console.log(token, newPassword);
 
-  try {
-    const otp_table = await db.query(
-      `
-      SELECT user_email, token_expires_at FROM verifications WHERE token = $1
-    `,
-      [token],
-    );
-
-    if (new Date() > otp_table.rows[0].token_expires_at) {
-      await db.query(
+    try {
+      const otp_table = await db.query(
         `
-      DELETE FROM verifications WHERE token = $1
+      SELECT user_email, token_expires_at FROM verifications WHERE token = $1
     `,
         [token],
       );
 
-      return res.json({
-        success: false,
-        message: "Your Code expired.",
+      if (new Date() > otp_table.rows[0].token_expires_at) {
+        await db.query(
+          `
+      DELETE FROM verifications WHERE token = $1
+    `,
+          [token],
+        );
+
+        return res.json({
+          success: false,
+          message: "Your Code expired.",
+        });
+      }
+
+      const hashNewPassword = await hash(newPassword, {
+        memoryCost: 19456,
+        timeCost: 2,
+        outputLen: 32,
+        parallelism: 1,
       });
-    }
 
-    const hashNewPassword = await hash(newPassword, {
-      memoryCost: 19456,
-      timeCost: 2,
-      outputLen: 32,
-      parallelism: 1,
-    });
-
-    const updatedUser = await db.query(
-      `
+      const updatedUser = await db.query(
+        `
       UPDATE users SET password_hash = $1 WHERE email = $2
     `,
-      [hashNewPassword, otp_table.rows[0].user_email],
-    );
-    await db.query(
-      `
+        [hashNewPassword, otp_table.rows[0].user_email],
+      );
+      await db.query(
+        `
     DELETE FROM verifications WHERE token = $1
   `,
-      [token],
-    );
+        [token],
+      );
 
-    res.json({
-      success: true,
-    });
-  } catch (error) {
-    console.log(error);
-    res.json({
-      success: false,
-    });
-  }
-});
+      res.json({
+        success: true,
+      });
+    } catch (error) {
+      console.log(error);
+      res.json({
+        success: false,
+      });
+    }
+  },
+);
 
 export default usersRouter;
