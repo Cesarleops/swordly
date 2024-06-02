@@ -109,6 +109,8 @@ export const signIn = async (req: Request, res: Response) => {
 export const githubLogin = async (req: Request, res: Response) => {
   const state = generateState();
   const url = await github.createAuthorizationURL(state);
+  console.log("viene", req);
+  console.log("URL", url);
   res
     .cookie("github_oauth_state", state, {
       httpOnly: true,
