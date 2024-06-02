@@ -154,7 +154,8 @@ export const githubLoginCallback = async (req: Request, res: Response) => {
     if (existingUser.rows.length > 0) {
       const session = await lucia.createSession(existingUser.rows[0].id, {});
       const sessionCookie = lucia.createSessionCookie(session.id);
-      console.log("sessions", session);
+      console.log("cookies", sessionCookie);
+
       return res
         .status(302)
         .cookie(
@@ -174,6 +175,7 @@ export const githubLoginCallback = async (req: Request, res: Response) => {
     console.log(userId);
     const session = await lucia.createSession(userId, {});
     const sessionCookie = lucia.createSessionCookie(session.id);
+    console.log("cookies", sessionCookie);
 
     res
       .status(302)
