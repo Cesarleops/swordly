@@ -1,22 +1,12 @@
 {
-  "$schema": "https://json.schemastore.org/tsconfig",
-  "display": "Node 21",
-  "_version": "21.0.0",
   "compilerOptions": {
+    "sourceMap": true,
     "outDir": "./dist",
-    "lib": ["es2023"],
-    "module": "node16",
-    "target": "es2022",
-    "strict": true,
-    "esModuleInterop": true,
-    "skipLibCheck": true,
-    "moduleResolution": "node16",
-    "forceConsistentCasingInFileNames": true,
     "rootDir": "./src",
-    "resolveJsonModule": true,
-    "allowJs": true,
-    "isolatedModules": true
+    "strict": false,
+    "lib": ["esnext"],
+    "esModuleInterop": true,
+    "declaration": true
   },
-  "include": ["src/**/*.ts"],
-  "exclude": ["node_modules", "**/*.test.ts"]
+  "include": ["src/**/*.ts"]
 }
