@@ -10,12 +10,7 @@ import { envConfig } from "./src/config/index.js";
 
 export const app = express();
 const corsOptions = {
-  origin: [
-    /^http:\/\/localhost:3000(\/.*)?$/,
-    "https://swordly-front.vercel.app",
-    "https://swordly-front.vercel.app/dashboard",
-    "https://swordly-front.vercel.app/signup",
-  ],
+  origin: "*",
   credentials: true,
   allowedHeaders: ["Content-Type", "Authorization", "X-Requested-With"],
 };
