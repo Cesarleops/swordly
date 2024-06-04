@@ -1,6 +1,7 @@
 import express from "express";
 import cors from "cors";
 import { dbInit, db } from "./src/db.js";
+
 import usersRouter from "./src/users/routes.js";
 import linksRouter from "./src/links/routes.js";
 import { groupsRouter } from "./src/groups/routes.js";
@@ -13,6 +14,7 @@ const corsOptions = {
     /^http:\/\/localhost:3000(\/.*)?$/,
     "https://swordly-front.vercel.app",
     "https://swordly-front.vercel.app/dashboard",
+    "https://swordly-front.vercel.app/signup",
   ],
   credentials: true,
   allowedHeaders: ["Content-Type", "Authorization", "X-Requested-With"],
