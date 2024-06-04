@@ -11,6 +11,7 @@ const nodeEnv = process.env.NODE_ENV || "development";
 export const lucia = new Lucia(adapter, {
   sessionCookie: {
     attributes: {
+      sameSite: "none",
       secure: nodeEnv !== "development", // set `Secure` flag in HTTPS
     },
   },
