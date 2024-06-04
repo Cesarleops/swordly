@@ -11,9 +11,9 @@ import { envConfig } from "./src/config/index.js";
 export const app = express();
 const corsOptions = {
   origin: true,
+  methods: ["GET", "PUT", "POST", "DELETE", "OPTIONS"],
   credentials: true,
 };
-app.set("trust proxy", 1); // trust first proxy
 app.use(cors(corsOptions));
 app.use(express.json());
 app.use("/api", authRouter);
