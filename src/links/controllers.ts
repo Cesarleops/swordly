@@ -12,6 +12,7 @@ import {
   updateLink,
 } from "./queries.js";
 import { db } from "../db.js";
+import { deleteLinksFromGroup } from "../groups/queries.js";
 
 export interface CustomRequest extends Request {
   user: {
@@ -98,6 +99,7 @@ export async function editLink(req: Request, res: Response) {
 
 export async function deleteLink(req: Request, res: Response) {
   try {
+    const deleteLinkFromGroups = await deleteLinksFromGroup(req.body.id);
     const deletedLink = await deleteLinkFromDb(
       req.body.id,
       (req as CustomRequest).user.id,

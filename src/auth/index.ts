@@ -13,7 +13,7 @@ export const lucia = new Lucia(adapter, {
     expires: false,
 
     attributes: {
-      domain: ".railway.app",
+      domain: nodeEnv === "development" ? "" : ".railway.app",
       secure: nodeEnv !== "development", // set `Secure` flag in HTTPS
     },
   },
